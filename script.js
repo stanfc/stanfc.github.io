@@ -1,73 +1,25 @@
-// 語言切換功能
-let currentLanguage = "zh";
+document.addEventListener('DOMContentLoaded', function() {
+    const starsContainer = document.getElementById('stars-container');
+    const numStars = 100;
+
+    for (let i = 0; i < numStars; i++) {
+        let star = document.createElement('div');
+        star.classList.add('star');
+        star.style.top = `${Math.random() * 100}vh`;
+        star.style.left = `${Math.random() * 100}vw`;
+        star.style.width = `${Math.random() * 2 + 1}px`;
+        star.style.height = star.style.width;
+        star.style.animationDelay = `${Math.random() * 2}s`;
+        starsContainer.appendChild(star);
+    }
+});
 
 function switchLanguage(lang) {
-  currentLanguage = lang;
+    const elements = document.querySelectorAll('[data-zh], [data-en]');
+    elements.forEach(el => {
+        el.innerHTML = el.dataset[lang];
+    });
 
-  // 更新按鈕狀態
-  document.getElementById("zh-btn").classList.toggle("active", lang === "zh");
-  document.getElementById("en-btn").classList.toggle("active", lang === "en");
-
-  // 更新所有具有多語言屬性的元素
-  const elements = document.querySelectorAll("[data-zh][data-en]");
-  elements.forEach((element) => {
-    const text = element.getAttribute(`data-${lang}`);
-    if (text) {
-      element.innerHTML = text;
-    }
-  });
+    document.getElementById('zh-btn').classList.toggle('active', lang === 'zh');
+    document.getElementById('en-btn').classList.toggle('active', lang === 'en');
 }
-
-// 創建浮動粒子效果
-function createParticles() {
-  const particlesContainer = document.getElementById("particles");
-
-  function createParticle() {
-    const particle = document.createElement("div");
-    particle.className = "particle";
-
-    const size = Math.random() * 5 + 2;
-    particle.style.width = size + "px";
-    particle.style.height = size + "px";
-    particle.style.left = Math.random() * 100 + "%";
-    particle.style.animationDuration = Math.random() * 10 + 10 + "s";
-    particle.style.animationDelay = Math.random() * 5 + "s";
-
-    particlesContainer.appendChild(particle);
-
-    setTimeout(() => {
-      if (particle.parentNode) {
-        particle.parentNode.removeChild(particle);
-      }
-    }, 20000);
-  }
-
-  // 每500ms創建一個新粒子
-  setInterval(createParticle, 500);
-}
-
-// 頁面載入完成後啟動動畫
-document.addEventListener("DOMContentLoaded", function () {
-  createParticles();
-
-  // 添加平滑滾動效果
-  const cards = document.querySelectorAll(".card");
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = "1";
-          entry.target.style.transform = "translateY(0)";
-        }
-      });
-    },
-    { threshold: 0.1 }
-  );
-
-  cards.forEach((card) => {
-    card.style.opacity = "0";
-    card.style.transform = "translateY(50px)";
-    card.style.transition = "all 0.6s ease";
-    observer.observe(card);
-  });
-});
