@@ -1,0 +1,45 @@
+.timeline-item {
+  margin-bottom: 25px;
+  padding-left: 20px;
+  border-left: 3px solid #667eea;
+  position: relative;
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 5px;
+  width: 12px;
+  height: 12px;
+  background: #667eea;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.3);
+}
+
+.timeline-date {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  color: white;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.timeline-title {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.timeline-company {
+  color: #667eea;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.timeline-description {
+  color: #666;
+  line-height: 1.6;
+} 
