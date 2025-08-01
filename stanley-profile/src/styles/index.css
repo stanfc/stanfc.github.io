@@ -1,0 +1,8 @@
+/* 匯入所有樣式檔案 */
+@import './global.css';
+@import './header.css';
+@import './cards.css';
+@import './timeline.css';
+@import './skills.css';
+@import './stars.css';
+@import './language-toggle.css'; 
