@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/stanley-profile/static/css/main.43efcf34.css",
+    "main.js": "/stanley-profile/static/js/main.fa5c7f64.js",
+    "static/js/453.5f360cae.chunk.js": "/stanley-profile/static/js/453.5f360cae.chunk.js",
+    "index.html": "/stanley-profile/index.html",
+    "main.43efcf34.css.map": "/stanley-profile/static/css/main.43efcf34.css.map",
+    "main.fa5c7f64.js.map": "/stanley-profile/static/js/main.fa5c7f64.js.map",
+    "453.5f360cae.chunk.js.map": "/stanley-profile/static/js/453.5f360cae.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.43efcf34.css",
+    "static/js/main.fa5c7f64.js"
+  ]
+}
