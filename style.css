@@ -1,3 +1,52 @@
+/* 導入思源宋體 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* 字體設置 */
+  --font-family: "Noto Serif TC", "思源宋體", "Source Han Serif", serif;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* 主要品牌顏色 */
+  --primary-color: #b2a69f;
+  --secondary-color: #857b75;
+  
+  /* 漸層 */
+  --primary-gradient: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  --bg-gradient: linear-gradient(135deg, var(--bg-primary-a) 0%, var(--bg-primary-b) 100%);
+  
+  /* 文字顏色 */
+  --text-primary: #333;
+  --text-secondary: #666;
+  --text-light: #555;
+  
+  /* 背景顏色 */
+  --bg-primary-a: #fbf6ed;
+  --bg-primary-b: #fbf6ed;
+  --bg-secondary: rgba(255, 255, 255, 0.95);
+  --bg-overlay: rgba(255, 255, 255, 0.3);
+  
+  /* 陰影顏色 */
+  --shadow-light: rgba(0, 0, 0, 0.1);
+  --shadow-medium: rgba(0, 0, 0, 0.15);
+  --shadow-primary: rgba(151, 163, 141, 0.3);
+  --shadow-primary-strong: rgba(151, 163, 141, 0.4);
+  
+  /* 互動顏色 */
+  --hover-bg: rgba(151, 163, 141, 0.1);
+  --hover-bg-strong: rgba(151, 163, 141, 0.2);
+  
+  /* 邊框顏色 */
+  --border-primary: var(--primary-color);
+  --border-overlay: var(--bg-overlay);
+
+  --white: #fff;
+  --black: #000;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -5,10 +54,11 @@
 }
 
 body {
-  font-family: "Microsoft JhengHei", Arial, sans-serif;
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-normal);
   line-height: 1.6;
-  color: #333;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: var(--text-primary);
+  background: var(--bg-gradient);
   min-height: 100vh;
 }
 
@@ -19,14 +69,14 @@ body {
 }
 
 .header {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-secondary);
   backdrop-filter: blur(10px);
   border-radius: 20px;
   padding: 40px;
   text-align: center;
   margin-bottom: 30px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 20px 40px var(--shadow-light);
+  border: 1px solid var(--border-overlay);
   transition: transform 0.3s ease;
 }
 
@@ -40,8 +90,9 @@ body {
   border-radius: 50%;
   margin: 0 auto 20px;
   object-fit: cover;
-  box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 15px 30px var(--shadow-primary);
   animation: float 3s ease-in-out infinite;
+  will-change: transform;
 }
 
 @keyframes float {
@@ -57,7 +108,7 @@ body {
 .name {
   font-size: 2.5em;
   margin-bottom: 10px;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -65,7 +116,7 @@ body {
 
 .title {
   font-size: 1.3em;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 20px;
 }
 
@@ -82,14 +133,47 @@ body {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: rgba(102, 126, 234, 0.1);
+  background: var(--hover-bg);
   border-radius: 25px;
   transition: all 0.3s ease;
 }
 
 .contact-item:hover {
-  background: rgba(102, 126, 234, 0.2);
+  background: var(--hover-bg-strong);
   transform: scale(1.05);
+}
+
+.github-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.github-link:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.email-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.email-link:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.phone-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.phone-link:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
 }
 
 .main-content {
@@ -100,22 +184,23 @@ body {
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-secondary);
   backdrop-filter: blur(10px);
   padding: 30px;
   border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 20px 40px var(--shadow-light);
+  border: 1px solid var(--border-overlay);
   transition: all 0.3s ease;
+  will-change: transform;
 }
 
 .card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 30px 60px var(--shadow-medium);
 }
 
 .card h2 {
-  color: #667eea;
+  color: var(--primary-color);
   margin-bottom: 20px;
   font-size: 1.8em;
   display: flex;
@@ -126,19 +211,19 @@ body {
 .section-icon {
   width: 30px;
   height: 30px;
-  background: linear-gradient(45deg, #667eea, #764ba2);
+  background: var(--primary-gradient);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--white);
   font-size: 16px;
 }
 
 .timeline-item {
   margin-bottom: 25px;
   padding-left: 20px;
-  border-left: 3px solid #667eea;
+  border-left: 3px solid var(--primary-color);
   position: relative;
 }
 
@@ -149,14 +234,14 @@ body {
   top: 5px;
   width: 12px;
   height: 12px;
-  background: #667eea;
+  background: var(--primary-color);
   border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 0 0 4px var(--shadow-primary);
 }
 
 .timeline-date {
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
+  background: var(--primary-gradient);
+  color: var(--white);
   padding: 5px 15px;
   border-radius: 20px;
   font-size: 0.9em;
@@ -165,19 +250,21 @@ body {
 }
 
 .timeline-title {
-  font-weight: bold;
-  color: #333;
+  font-weight: var(--font-weight-bold);
+  font-size: 1.5em;
+  color: var(--text-primary);
   margin-bottom: 5px;
 }
 
 .timeline-company {
-  color: #667eea;
-  font-weight: 600;
+  color: var(--primary-color);
+  font-weight: var(--font-weight-semibold);
   margin-bottom: 8px;
+  font-size: 1.3em;
 }
 
 .timeline-description {
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.6;
 }
 
@@ -188,19 +275,107 @@ body {
 }
 
 .skill-item {
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
+  background: var(--primary-gradient);
+  color: var(--white);
   padding: 15px;
   border-radius: 15px;
   text-align: center;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .skill-item:hover {
   transform: scale(1.1) rotate(5deg);
-  box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 15px 30px var(--shadow-primary-strong);
+}
+
+.skills-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.skill-category {
+  margin-bottom: 20px;
+}
+
+.category-title {
+  color: var(--primary-color);
+  font-size: 1.2em;
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: 15px;
+  border-bottom: 2px solid var(--hover-bg);
+  padding-bottom: 8px;
+}
+
+.skills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.skill-item-small {
+  background: var(--primary-gradient);
+  color: var(--white);
+  padding: 8px 15px;
+  border-radius: 20px;
+  text-align: center;
+  font-weight: var(--font-weight-medium);
+  font-size: 0.9em;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.skill-item-small:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px var(--shadow-primary-strong);
+}
+
+/* 經驗區塊靈活佈局 */
+.experience-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  padding: 0 20px;
+}
+
+.experience-grid .timeline-item {
+  margin-bottom: 0;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* 專案連結按鈕樣式 */
+.project-link {
+  margin-top: 12px;
+  text-align: left;
+}
+
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: transparent;
+  color: var(--primary-color);
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  background: var(--hover-bg);
+  color: var(--primary-color);
+}
+
+.link-button:active {
+  background: var(--hover-bg-strong);
 }
 
 .full-width {
@@ -210,7 +385,7 @@ body {
 .about-text {
   font-size: 1.1em;
   line-height: 1.8;
-  color: #555;
+  color: var(--text-light);
   text-align: justify;
 }
 
@@ -232,83 +407,22 @@ body {
     padding: 10px;
   }
 
-  .language-toggle {
-    top: 20px;
-    right: 20px;
-    padding: 6px;
+  .skills-row {
+    justify-content: center;
   }
 
-  .lang-btn {
+  .experience-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 0;
+  }
+  
+  .experience-grid .timeline-item {
+    margin-bottom: 25px;
+  }
+
+  .link-button {
     padding: 6px 12px;
-    font-size: 12px;
-  }
-}
-
-.floating-particles {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.language-toggle {
-  position: fixed;
-  top: 30px;
-  right: 30px;
-  z-index: 1000;
-  display: flex;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 25px;
-  padding: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.lang-btn {
-  padding: 8px 16px;
-  border: none;
-  background: transparent;
-  border-radius: 20px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  font-size: 14px;
-}
-
-.lang-btn.active {
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
-  transform: scale(1.05);
-}
-
-.lang-btn:hover:not(.active) {
-  background: rgba(102, 126, 234, 0.1);
-}
-
-.particle {
-  position: absolute;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  animation: floating 15s infinite linear;
-}
-
-@keyframes floating {
-  0% {
-    transform: translateY(100vh) rotate(0deg);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-100px) rotate(360deg);
-    opacity: 0;
+    font-size: 0.8em;
   }
 }
