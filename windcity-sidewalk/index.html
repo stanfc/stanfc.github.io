@@ -1,0 +1,507 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>風城人行道</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<style>
+/* Layout: full-bleed 3D street, HUD pinned top, tap halves fill screen; single dusk-grey look by choice */
+:root{
+  --sky:#9fb3bf; --ink:#14212b; --paper:#f3f1ea; --brick:#b5553a; --warn:#ffcf3a; --danger:#e8402b;
+  --glass:rgba(20,33,43,.72);
+  --f-display:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--f-display);
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+#stage{position:fixed;inset:0;touch-action:none}
+#stage canvas{display:block;width:100%;height:100%}
+.hud{position:fixed;left:0;right:0;top:0;z-index:5;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  padding-top:calc(env(safe-area-inset-top,0px) + 12px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));pointer-events:none}
+.chip{background:var(--glass);border-radius:10px;padding:8px 12px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.lbl{font-size:11px;letter-spacing:.12em;opacity:.7;font-weight:500}
+.dist{font-size:28px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1}
+.dist small{font-size:14px;font-weight:700;margin-left:2px}
+.wind{display:flex;align-items:center;gap:10px;text-align:right}
+.wind .big{font-size:22px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.wind .ms{font-size:12px;opacity:.8;font-variant-numeric:tabular-nums}
+#arrow{width:40px;height:40px;transition:transform .25s}
+.meter{height:6px;border-radius:3px;background:rgba(255,255,255,.15);margin-top:6px;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--warn);border-radius:3px}
+.gust{position:fixed;left:50%;top:32%;transform:translateX(-50%) rotate(-4deg);z-index:6;pointer-events:none;font-size:44px;font-weight:900;color:var(--warn);text-shadow:0 3px 0 var(--ink),0 0 18px rgba(0,0,0,.4);letter-spacing:.06em;white-space:nowrap}
+.edge{position:fixed;top:0;bottom:0;width:22%;z-index:3;pointer-events:none;opacity:0;transition:opacity .15s}
+#edgeL{left:0;background:linear-gradient(90deg,rgba(232,64,43,.55),transparent)}
+#edgeR{right:0;background:linear-gradient(270deg,rgba(232,64,43,.55),transparent)}
+.beep{position:absolute;top:45%;font-size:30px;font-weight:900;color:var(--warn);text-shadow:0 2px 0 var(--ink)}
+#edgeL .beep{left:max(16px,env(safe-area-inset-left,0px))}
+#edgeR .beep{right:max(16px,env(safe-area-inset-right,0px))}
+.taps{position:fixed;left:0;right:0;bottom:0;z-index:4;display:flex;justify-content:space-between;pointer-events:none;
+  padding-bottom:calc(env(safe-area-inset-bottom,0px) + 18px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.tap{width:64px;height:64px;border-radius:50%;border:2px solid rgba(243,241,234,.5);display:grid;place-items:center;
+  font-size:26px;font-weight:900;background:rgba(20,33,43,.35);transition:transform .06s,background .06s}
+.tap.on{transform:scale(.88);background:rgba(255,207,58,.55)}
+.screen{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:rgba(20,33,43,.55);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.card{background:var(--paper);color:var(--ink);border-radius:18px;padding:26px 22px 22px;max-width:360px;width:100%;
+  display:flex;flex-direction:column;gap:14px;box-shadow:0 18px 50px rgba(0,0,0,.35);position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;inset:0 0 auto;height:8px;background:repeating-linear-gradient(90deg,var(--brick) 0 22px,#c9694c 22px 44px)}
+.card h1{margin:0;font-size:40px;font-weight:900;line-height:1.05;letter-spacing:.02em;text-wrap:balance}
+.card h1 em{font-style:normal;color:var(--brick)}
+.card p{margin:0;font-size:14px;line-height:1.7;color:#3a4650}
+.rules{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;font-size:13px;line-height:1.5;color:#3a4650}
+.rules b{color:var(--ink)}
+.btn{appearance:none;border:0;border-radius:12px;background:var(--ink);color:var(--paper);font:900 18px var(--f-display);
+  padding:14px;cursor:pointer;letter-spacing:.1em}
+.btn:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
+.btn.alt{background:transparent;color:var(--ink);border:2px solid var(--ink);font-size:14px;padding:10px}
+.stat{display:flex;gap:10px}
+.stat div{flex:1;background:#e6e2d6;border-radius:10px;padding:10px 12px}
+.stat .v{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums}
+.foot{font-size:11px;color:#6b747a;letter-spacing:.06em}
+@media (prefers-reduced-motion:reduce){#arrow,.tap{transition:none}}
+</style>
+
+<div id="stage"></div>
+
+<div class="hud">
+  <div class="chip">
+    <div class="lbl">走了</div>
+    <div class="dist"><span id="dist">0</span><small>公尺</small></div>
+  </div>
+  <div class="chip wind">
+    <div>
+      <div class="lbl" id="windName">東北季風</div>
+      <div class="big" id="beau">0 級</div>
+      <div class="ms" id="ms">0.0 m/s</div>
+      <div class="meter"><i id="meter"></i></div>
+    </div>
+    <svg id="arrow" viewBox="0 0 40 40" aria-hidden="true"><path d="M4 20h24M20 10l10 10-10 10" fill="none" stroke="#ffcf3a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+</div>
+
+<div class="gust" id="gust" hidden>強陣風!</div>
+<div class="edge" id="edgeL"><span class="beep">叭!</span></div>
+<div class="edge" id="edgeR"><span class="beep">叭!</span></div>
+
+<div class="taps" aria-hidden="true"><div class="tap" id="tapL">←</div><div class="tap" id="tapR">→</div></div>
+
+<div class="screen" id="startScreen">
+  <div class="card">
+    <h1>風城<em>人行道</em></h1>
+    <p>十月，九降風開始吹。你要沿著新竹的人行道一直走下去，兩邊都是機車。</p>
+    <div class="rules">
+      <b>點左半邊</b><span>往左修正一步</span>
+      <b>點右半邊</b><span>往右修正一步</span>
+      <b>風越大</b><span>每步一樣大，所以要點越多下</span>
+      <b>叭!</b><span>那一側有機車靠近，別被吹過去</span>
+    </div>
+    <button class="btn" id="startBtn" type="button">開始走</button>
+    <div class="foot">電腦也可以用 ← → 或 A D</div>
+  </div>
+</div>
+
+<div class="screen" id="overScreen" hidden>
+  <div class="card">
+    <h1 id="overTitle">被機車<em>撞了</em></h1>
+    <p id="overMsg">風太大，你被吹進車道。</p>
+    <div class="stat">
+      <div><div class="lbl" style="color:#6b747a">這次</div><div class="v" id="finalDist">0 m</div></div>
+      <div><div class="lbl" style="color:#6b747a">最遠</div><div class="v" id="bestDist">0 m</div></div>
+    </div>
+    <button class="btn" id="againBtn" type="button">再走一次</button>
+    <button class="btn alt" id="muteBtn" type="button">風聲：開</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const stage=$('stage');
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+
+const scene=new THREE.Scene();
+const SKY=0x9fb3bf;
+scene.background=new THREE.Color(SKY);
+scene.fog=new THREE.Fog(SKY,25,85);
+const camera=new THREE.PerspectiveCamera(60,1,0.1,200);
+
+scene.add(new THREE.HemisphereLight(0xdfe8ee,0x5a5048,0.85));
+const sun=new THREE.DirectionalLight(0xfff1dc,0.75);
+sun.position.set(-8,14,6);sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024);
+Object.assign(sun.shadow.camera,{left:-10,right:10,top:12,bottom:-12,near:1,far:40});
+scene.add(sun);scene.add(sun.target);
+
+// ---------- textures ----------
+function canvasTex(w,h,draw,rx,ry){
+  const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;if(rx)t.repeat.set(rx,ry);t.anisotropy=4;return t;
+}
+const brickTex=canvasTex(256,256,(g,w,h)=>{
+  g.fillStyle='#8e4a36';g.fillRect(0,0,w,h);
+  const cols=['#b5553a','#a94d34','#c06244','#b85a3f','#9f4b33'];
+  for(let r=0;r<8;r++)for(let c=-1;c<5;c++){
+    const x=c*64+(r%2?32:0),y=r*32;g.fillStyle=cols[(r*7+c*3+9)%5];g.fillRect(x+2,y+2,60,28);
+  }
+},2,8);
+const roadTex=canvasTex(256,256,(g,w,h)=>{
+  g.fillStyle='#3d4247';g.fillRect(0,0,w,h);
+  for(let i=0;i<2500;i++){const v=50+Math.random()*30|0;g.fillStyle=`rgb(${v},${v+3},${v+6})`;g.fillRect(Math.random()*w,Math.random()*h,2,2);}
+},2,8);
+function signTex(text,bg,fg){
+  return canvasTex(256,96,(g,w,h)=>{
+    g.fillStyle=bg;g.fillRect(0,0,w,h);g.fillStyle=fg;g.font='900 56px "Noto Sans TC","PingFang TC",sans-serif';
+    g.textAlign='center';g.textBaseline='middle';g.fillText(text,w/2,h/2+4);
+  });
+}
+const SIGNS=[['新竹米粉','#c8202a','#fff5d6'],['貢丸湯','#f2c230','#14212b'],['風城','#1e5fa8','#ffffff'],
+  ['城隍廟口','#7a1d1d','#ffd56a'],['摃丸專賣','#0f7a52','#ffffff'],['機車行','#14212b','#ffcf3a'],['肉圓','#e06a1b','#ffffff'],['手搖飲','#6b3fa0','#ffffff']]
+  .map(s=>new THREE.MeshLambertMaterial({map:signTex(...s)}));
+
+// ---------- street segments ----------
+const SEG=24, NSEG=6;
+const SIDE=1.6, LANE_IN=1.85, LANE_OUT=3.7, LANE_C=2.75;
+const mat={
+  brick:new THREE.MeshLambertMaterial({map:brickTex}),
+  road:new THREE.MeshLambertMaterial({map:roadTex}),
+  curb:new THREE.MeshLambertMaterial({color:0xcfcac0}),
+  yellow:new THREE.MeshBasicMaterial({color:0xf2c230}),
+  white:new THREE.MeshBasicMaterial({color:0xeeeeee}),
+  pole:new THREE.MeshLambertMaterial({color:0x6c7378}),
+  tree:new THREE.MeshLambertMaterial({color:0x3e6b45}),
+  trunk:new THREE.MeshLambertMaterial({color:0x5b4636})
+};
+const bColors=[0xd9d2c3,0xbfc6c4,0xe3d9c6,0xa9b2b0,0xcbbfa8,0xd4cfc7,0xb8aea0];
+const segments=[];
+function makeSegment(){
+  const g=new THREE.Group();
+  const sw=new THREE.Mesh(new THREE.PlaneGeometry(SIDE*2,SEG),mat.brick);sw.rotation.x=-Math.PI/2;sw.position.y=0.15;sw.receiveShadow=true;g.add(sw);
+  [-1,1].forEach(s=>{
+    const curb=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.18,SEG),mat.curb);curb.position.set(s*(SIDE+0.12),0.09,0);g.add(curb);
+    const road=new THREE.Mesh(new THREE.PlaneGeometry(LANE_OUT-LANE_IN+0.4,SEG),mat.road);road.rotation.x=-Math.PI/2;
+    road.position.set(s*(LANE_IN+LANE_OUT)/2,0,0);road.receiveShadow=true;g.add(road);
+    // red-yellow kerb paint no-parking line
+    const ln=new THREE.Mesh(new THREE.PlaneGeometry(0.12,SEG),mat.yellow);ln.rotation.x=-Math.PI/2;ln.position.set(s*LANE_IN,0.01,0);g.add(ln);
+    for(let i=0;i<4;i++){const d=new THREE.Mesh(new THREE.PlaneGeometry(0.12,2.5),mat.white);d.rotation.x=-Math.PI/2;d.position.set(s*LANE_OUT,0.01,-SEG/2+3+i*6);g.add(d);}
+    // far side: arcade buildings (騎樓)
+    const bl=new THREE.Group();g.add(bl);bl.userData.side=s;
+    const ground=new THREE.Mesh(new THREE.PlaneGeometry(14,SEG),mat.curb);ground.rotation.x=-Math.PI/2;ground.position.set(s*(LANE_OUT+7.2),0.12,0);g.add(ground);
+  });
+  g.userData.dyn=new THREE.Group();g.add(g.userData.dyn);
+  scene.add(g);return g;
+}
+function dressSegment(g){
+  const dyn=g.userData.dyn;
+  while(dyn.children.length){const c=dyn.children.pop();if(c.geometry&&!c.userData.shared)c.geometry.dispose();}
+  [-1,1].forEach(s=>{
+    let z=-SEG/2;
+    while(z<SEG/2-1){
+      const w=3+Math.random()*3, h=7+Math.random()*12, d=6;
+      const b=new THREE.Mesh(new THREE.BoxGeometry(d,h,w-0.15),new THREE.MeshLambertMaterial({color:bColors[Math.random()*bColors.length|0]}));
+      b.position.set(s*(LANE_OUT+2.6+d/2),h/2,z+w/2);b.castShadow=true;dyn.add(b);
+      // window strips
+      for(let f=1;f<h/3;f++){const wn=new THREE.Mesh(new THREE.PlaneGeometry(w*0.7,0.9),new THREE.MeshLambertMaterial({color:0x51636f}));
+        wn.position.set(s*(LANE_OUT+2.58),f*3+1.5,z+w/2);wn.rotation.y=-s*Math.PI/2;dyn.add(wn);}
+      if(Math.random()<0.75){
+        const sg=new THREE.Mesh(new THREE.PlaneGeometry(2.4,0.9),SIGNS[Math.random()*SIGNS.length|0]);
+        sg.position.set(s*(LANE_OUT+2.55),3.1,z+w/2);sg.rotation.y=-s*Math.PI/2;dyn.add(sg);
+      }
+      z+=w;
+    }
+    // parked scooter row in arcade
+    for(let i=0;i<5;i++){if(Math.random()<0.6){const p=makeScooter(true);p.rotation.y=s*Math.PI/2;p.position.set(s*(LANE_OUT+1.3),0.12,-SEG/2+2+i*4.6+Math.random());dyn.add(p);}}
+  });
+  // trees & lamp poles on the sidewalk edge
+  for(let i=0;i<2;i++){
+    const s=Math.random()<.5?-1:1, z=-SEG/2+4+i*12+Math.random()*4;
+    if(Math.random()<0.5){
+      const t=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.11,2.2,6),mat.trunk);t.position.set(s*1.45,1.25,z);t.castShadow=true;dyn.add(t);
+      const c=new THREE.Mesh(new THREE.IcosahedronGeometry(0.8,0),mat.tree);c.position.set(s*1.45,2.6,z);c.castShadow=true;c.userData.sway=true;dyn.add(c);
+    }else{
+      const p=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.07,4.2,6),mat.pole);p.position.set(s*1.5,2.25,z);p.castShadow=true;dyn.add(p);
+      const flag=new THREE.Mesh(new THREE.PlaneGeometry(0.5,1.1),new THREE.MeshLambertMaterial({color:[0xc8202a,0x1e5fa8,0xf2c230][Math.random()*3|0],side:THREE.DoubleSide}));
+      flag.position.set(s*1.5,3.4,z);flag.userData.flag=true;dyn.add(flag);
+    }
+  }
+}
+
+// ---------- scooters ----------
+const scootCols=[0xe8e4dc,0x2f5fa8,0xc8202a,0x1d1f22,0x8fb8c4,0xf2c230,0x6d7c4f];
+const helmCols=[0xffffff,0xf2c230,0x2f5fa8,0xe06a1b,0x1d1f22];
+const wheelGeo=new THREE.CylinderGeometry(0.24,0.24,0.12,12);wheelGeo.rotateZ(Math.PI/2);
+const wheelMat=new THREE.MeshLambertMaterial({color:0x1a1a1a});
+function makeScooter(parked){
+  const g=new THREE.Group();
+  const col=scootCols[Math.random()*scootCols.length|0];
+  const bm=new THREE.MeshLambertMaterial({color:col});
+  const body=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.45,1.3),bm);body.position.set(0,0.5,0.1);body.castShadow=true;g.add(body);
+  const front=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.8,0.25),bm);front.position.set(0,0.75,-0.55);front.castShadow=true;g.add(front);
+  const bar=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.06,0.06),mat.pole);bar.position.set(0,1.18,-0.55);g.add(bar);
+  [-0.7,0.75].forEach(z=>{const w=new THREE.Mesh(wheelGeo,wheelMat);w.position.set(0,0.24,z);g.add(w);});
+  const lamp=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.12,0.04),new THREE.MeshBasicMaterial({color:0xfff6c4}));lamp.position.set(0,1.0,-0.69);g.add(lamp);
+  const tail=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.08,0.04),new THREE.MeshBasicMaterial({color:0xff3322}));tail.position.set(0,0.75,0.77);g.add(tail);
+  if(!parked){
+    const rm=new THREE.MeshLambertMaterial({color:[0x445566,0x6b3fa0,0x2b2b2b,0x7a6a55,0xb04040][Math.random()*5|0]});
+    const torso=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.6,0.3),rm);torso.position.set(0,1.25,0.15);torso.rotation.x=-0.15;torso.castShadow=true;g.add(torso);
+    const helm=new THREE.Mesh(new THREE.SphereGeometry(0.19,10,8),new THREE.MeshLambertMaterial({color:helmCols[Math.random()*helmCols.length|0]}));helm.position.set(0,1.7,0.08);g.add(helm);
+  }
+  return g;
+}
+
+// ---------- player ----------
+const player=new THREE.Group();scene.add(player);
+const lean=new THREE.Group();player.add(lean);
+const coat=new THREE.MeshLambertMaterial({color:0x2d6e8e});
+const skin=new THREE.MeshLambertMaterial({color:0xe8c2a0});
+const pant=new THREE.MeshLambertMaterial({color:0x2a2f38});
+const torso=new THREE.Mesh(new THREE.BoxGeometry(0.46,0.62,0.28),coat);torso.position.y=1.15;torso.castShadow=true;lean.add(torso);
+const head=new THREE.Mesh(new THREE.SphereGeometry(0.17,12,10),skin);head.position.y=1.62;head.castShadow=true;lean.add(head);
+const hair=new THREE.Mesh(new THREE.SphereGeometry(0.175,12,10,0,Math.PI*2,0,Math.PI/2),new THREE.MeshLambertMaterial({color:0x1d1a18}));hair.position.y=1.64;lean.add(hair);
+const bag=new THREE.Mesh(new THREE.BoxGeometry(0.36,0.42,0.16),new THREE.MeshLambertMaterial({color:0xf2c230}));bag.position.set(0,1.18,0.22);bag.castShadow=true;lean.add(bag);
+function limb(m,w,h,x,y){const p=new THREE.Group();p.position.set(x,y,0);const l=new THREE.Mesh(new THREE.BoxGeometry(w,h,w),m);l.position.y=-h/2;l.castShadow=true;p.add(l);lean.add(p);return p;}
+const legL=limb(pant,0.17,0.82,-0.12,0.84),legR=limb(pant,0.17,0.82,0.12,0.84);
+const armL=limb(coat,0.12,0.58,-0.3,1.42),armR=limb(coat,0.12,0.58,0.3,1.42);
+// hair flap that blows
+const scarf=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.08,0.06),new THREE.MeshLambertMaterial({color:0xc8202a}));scarf.position.set(0,1.42,0.05);lean.add(scarf);
+
+// ---------- wind streaks ----------
+const NSTREAK=420;
+const streakPos=new Float32Array(NSTREAK*6);
+const streakData=[];
+const streakGeo=new THREE.BufferGeometry();streakGeo.setAttribute('position',new THREE.BufferAttribute(streakPos,3));
+const streaks=new THREE.LineSegments(streakGeo,new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.55,fog:true}));
+streaks.frustumCulled=false;scene.add(streaks);
+// leaves
+const leafGeo=new THREE.PlaneGeometry(0.14,0.09);
+const leaves=[];for(let i=0;i<40;i++){const l=new THREE.Mesh(leafGeo,new THREE.MeshLambertMaterial({color:[0x9a7a3a,0x6f8a3a,0xb5553a][i%3],side:THREE.DoubleSide}));scene.add(l);leaves.push({m:l});}
+function resetStreak(d,pz,anywhere){
+  d.x=anywhere?(Math.random()*20-10):(-Math.sign(wind||1)*(10+Math.random()*3));
+  d.y=0.3+Math.random()*4;d.z=pz+6-Math.random()*40;d.sp=0.7+Math.random()*0.6;
+}
+
+// ---------- state ----------
+let state='menu', px=0, pz=0, vxNudge=0, wind=0, windTarget=0, phaseT=0, t=0, dist=0, deadT=0, walk=0, shake=0;
+let gustT=0,gustAmt=0,gustVis=0,gustCD=4;
+let lanes=[], scooters=[], spawnL=0, spawnR=0, hitDir=0, deathMsg='';
+const STEP=0.2, NUDGE_TIME=0.09, WALK=2.6;
+let best=0;try{best=+localStorage.getItem('windcity_best')||0;}catch(e){}
+
+function reset(){
+  px=0;pz=0;vxNudge=0;wind=0;gustT=0;gustAmt=0;gustVis=0;gustCD=4;$('gust').hidden=true;windTarget=0.3;phaseT=2.5;t=0;dist=0;deadT=0;shake=0;hitDir=0;
+  scooters.forEach(s=>scene.remove(s.m));scooters=[];spawnL=0.6;spawnR=1.2;
+  segments.forEach((g,i)=>{g.position.z=-i*SEG+SEG/2-2;dressSegment(g);});
+  streakData.length=0;for(let i=0;i<NSTREAK;i++){const d={};resetStreak(d,0,true);streakData.push(d);}
+  leaves.forEach(l=>{l.x=Math.random()*20-10;l.y=Math.random()*3;l.z=-Math.random()*30;l.r=Math.random()*6;});
+  player.rotation.set(0,0,0);lean.rotation.set(0,0,0);player.position.set(0,0,0);
+}
+for(let i=0;i<NSEG;i++)segments.push(makeSegment());
+
+// ---------- wind model ----------
+const NAMES=['九降風','東北季風','風城日常','強陣風','颱風外圍'];
+function beaufort(ms){const tb=[0.3,1.6,3.4,5.5,8,10.8,13.9,17.2,20.8,24.5,28.5,32.7];let i=0;while(i<tb.length&&ms>=tb[i])i++;return i;}
+function nextPhase(){
+  const lf=Math.min(1,dist/350);
+  const calm=Math.random()<0.06-lf*0.05;
+  const dir=Math.random()<0.5?-1:1;
+  const base=0.85+1.1*lf, range=0.8+1.3*lf;
+  windTarget=calm?dir*0.2:dir*Math.min(3.3,base+Math.random()*range);
+  phaseT=calm?0.8:1.1+Math.random()*(2.0-lf*0.8);
+}
+
+// ---------- input ----------
+function nudge(d){if(state!=='play')return;vxNudge+=d*STEP;flashTap(d);}
+function flashTap(d){const el=d<0?$('tapL'):$('tapR');el.classList.add('on');setTimeout(()=>el.classList.remove('on'),70);}
+stage.addEventListener('pointerdown',e=>{e.preventDefault();nudge(e.clientX<innerWidth/2?-1:1);});
+addEventListener('keydown',e=>{
+  if(e.repeat)return;
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')nudge(-1);
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D')nudge(1);
+  if((e.key===' '||e.key==='Enter')&&state!=='play'&&deadT>1.2)start();
+});
+document.addEventListener('gesturestart',e=>e.preventDefault());
+
+// ---------- audio: filtered noise follows wind ----------
+let ac=null,windGain=null,windFilt=null,muted=false;
+function initAudio(){
+  if(ac)return;
+  try{
+    ac=new (window.AudioContext||window.webkitAudioContext)();
+    const len=ac.sampleRate*2,buf=ac.createBuffer(1,len,ac.sampleRate),d=buf.getChannelData(0);
+    let last=0;for(let i=0;i<len;i++){last=(last+0.04*(Math.random()*2-1))/1.04;d[i]=last*3.5;}
+    const src=ac.createBufferSource();src.buffer=buf;src.loop=true;
+    windFilt=ac.createBiquadFilter();windFilt.type='bandpass';windFilt.Q.value=0.8;windFilt.frequency.value=400;
+    windGain=ac.createGain();windGain.gain.value=0;
+    src.connect(windFilt).connect(windGain).connect(ac.destination);src.start();
+  }catch(e){ac=null;}
+}
+function beepSound(){
+  if(!ac||muted)return;
+  const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=440;
+  g.gain.setValueAtTime(0.06,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.25);
+  o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+0.26);
+}
+$('muteBtn').addEventListener('click',()=>{muted=!muted;$('muteBtn').textContent='風聲：'+(muted?'關':'開');});
+
+function start(){
+  initAudio();if(ac&&ac.state==='suspended')ac.resume();
+  reset();state='play';$('startScreen').hidden=true;$('overScreen').hidden=true;
+}
+$('startBtn').addEventListener('click',start);
+$('againBtn').addEventListener('click',start);
+
+// ---------- scooter spawning ----------
+function spawn(side){
+  const m=makeScooter(false);scene.add(m);
+  // left lane: oncoming (+z). right lane: same direction, overtaking from behind (-z)
+  const oncoming=side<0;
+  const speed=(oncoming?10:12)+Math.random()*4;
+  const z=oncoming?pz-70:pz+22;
+  m.rotation.y=oncoming?Math.PI:0;
+  const x=side*(LANE_C+(Math.random()-0.5)*0.9);
+  m.position.set(x,0,z);
+  scooters.push({m,side,v:oncoming?speed:-speed,x,warned:false});
+}
+
+function die(s){
+  state='dead';deadT=0;hitDir=Math.sign(px)||1;shake=0.6;
+  const dd=Math.floor(dist);
+  if(dd>best){best=dd;try{localStorage.setItem('windcity_best',best);}catch(e){}}
+  $('finalDist').textContent=dd+' m';$('bestDist').textContent=best+' m';
+  const lines=s.side<0?['被對向機車撞了','風把你吹進左邊的對向車道。']:['被後面的機車撞了','風把你推進右邊車道，後面的機車來不及閃。'];
+  $('overTitle').innerHTML=lines[0].replace(/撞了$/,'<em>撞了</em>');
+  $('overMsg').textContent=lines[1]+(dd>=300?' 在新竹撐了 '+dd+' 公尺，算是在地人了。':'');
+  beepSound();
+}
+
+// ---------- loop ----------
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;
+  camera.fov=w<h?72:58;camera.updateProjectionMatrix();}
+addEventListener('resize',resize);resize();
+
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(0.05,(now-last)/1000);last=now;t+=dt;
+  if(state==='play'){
+    phaseT-=dt;if(phaseT<=0)nextPhase();
+    const gust=Math.sin(t*3.1)*0.12+Math.sin(t*7.3)*0.08;
+    wind+=(windTarget-wind)*Math.min(1,dt*3.4);
+    gustCD-=dt;
+    if(gustCD<=0&&gustT<=0&&Math.abs(wind)>0.4){gustT=0.9;gustAmt=Math.sign(wind)*(0.9+Math.random()*0.7+Math.min(1,dist/350)*0.8);gustCD=1.8+Math.random()*2.5;$('gust').hidden=false;shake=Math.max(shake,0.25);}
+    if(gustT>0){gustT-=dt;if(gustT<=0){gustAmt=0;$('gust').hidden=true;}}
+    gustVis+=(gustAmt-gustVis)*Math.min(1,dt*8);
+    const drift=wind*(1+gust)+gustVis;
+    // apply nudge smoothly over NUDGE_TIME, constant total per tap
+    const take=Math.sign(vxNudge)*Math.min(Math.abs(vxNudge),STEP/NUDGE_TIME*dt);
+    vxNudge-=take;
+    px+=drift*dt+take;
+    px=Math.max(-3.9,Math.min(3.9,px));
+    pz-=WALK*dt;dist+=WALK*dt;walk+=dt*WALK*2.6;
+    // spawns
+    const lf=Math.min(1,dist/700);
+    spawnL-=dt;spawnR-=dt;
+    if(spawnL<=0){spawn(-1);spawnL=0.7+Math.random()*(1.6-lf*0.7);}
+    if(spawnR<=0){spawn(1);spawnR=0.8+Math.random()*(1.7-lf*0.7);}
+  }else if(state==='dead'){
+    deadT+=dt;
+    player.position.x+=hitDir*dt*3*Math.max(0,1-deadT);
+    player.rotation.z=-hitDir*Math.min(Math.PI/2,deadT*5);
+    player.position.y=Math.max(0,Math.sin(Math.min(Math.PI,deadT*4))*0.8);
+    if(deadT>0.9&&$('overScreen').hidden){$('overScreen').hidden=false;}
+    wind*=0.99;
+  }else{ // menu: idle demo
+    wind=Math.sin(t*0.4)*0.7;walk+=dt*3;pz-=dt*1.2;
+  }
+
+  // scooters
+  let warnL=false,warnR=false;
+  for(let i=scooters.length-1;i>=0;i--){
+    const s=scooters[i];s.m.position.z+=s.v*dt;
+    s.m.rotation.z=Math.sin(t*2+i)*0.03;
+    const dz=s.m.position.z-pz;
+    if(state==='play'){
+      const near=s.v>0?(dz<0&&dz>-26):(dz>0&&dz<16);
+      const risky=Math.abs(px)>SIDE-0.35;
+      if(near&&risky&&Math.sign(px)===s.side){if(s.side<0)warnL=true;else warnR=true;
+        if(!s.warned){s.warned=true;beepSound();}}
+      if(Math.abs(px-s.m.position.x)<0.62&&Math.abs(dz)<1.05){die(s);}
+    }
+    if((s.v>0&&dz>12)||(s.v<0&&dz<-90)){scene.remove(s.m);scooters.splice(i,1);}
+  }
+  $('edgeL').style.opacity=warnL?1:0;$('edgeR').style.opacity=warnR?1:0;
+
+  // recycle segments
+  segments.forEach(g=>{if(g.position.z-SEG/2>pz+10){g.position.z-=SEG*NSEG;dressSegment(g);}});
+
+  // player pose
+  if(state!=='dead'){
+    player.position.set(state==='menu'?Math.sin(t*0.4)*0.3:px,0,pz);
+    const sw=Math.sin(walk);
+    legL.rotation.x=sw*0.6;legR.rotation.x=-sw*0.6;armL.rotation.x=-sw*0.5;armR.rotation.x=sw*0.5;
+    lean.position.y=Math.abs(Math.cos(walk))*0.05;
+    const leanTarget=-(wind+gustVis)*0.4;lean.rotation.z+=(leanTarget-lean.rotation.z)*Math.min(1,dt*6);
+    armL.rotation.z=-0.15-Math.max(0,wind)*0.6;armR.rotation.z=0.15-Math.min(0,wind)*0.6;
+  }
+  scarf.position.x=wind*0.25;scarf.rotation.z=Math.sin(t*20)*0.15*Math.abs(wind);
+  player.position.z=pz;
+
+  // sway props
+  segments.forEach(g=>g.userData.dyn.children.forEach(c=>{
+    if(c.userData.sway)c.rotation.z=-(wind+gustVis)*0.3+Math.sin(t*4+c.position.z)*0.06*Math.abs(wind);
+    if(c.userData.flag){c.rotation.y=Math.PI/2+Math.sin(t*12+c.position.z)*0.25;c.position.x=Math.sign(c.position.x)*1.5+wind*0.28;}
+  }));
+
+  // streaks
+  const EW=wind+gustVis;
+  shake=Math.max(shake,Math.abs(EW)*0.05);
+  const W=EW*14;
+  const len=0.5+Math.abs(EW)*2.4;
+  for(let i=0;i<NSTREAK;i++){
+    const d=streakData[i];
+    d.x+=W*d.sp*dt;
+    if(d.x>12||d.x<-12||d.z>pz+8){resetStreak(d,pz,false);if(d.z>pz+8)d.z=pz-30*Math.random();}
+    const o=i*6;
+    streakPos[o]=d.x;streakPos[o+1]=d.y;streakPos[o+2]=d.z;
+    streakPos[o+3]=d.x-Math.sign(W||1)*len*d.sp;streakPos[o+4]=d.y;streakPos[o+5]=d.z;
+  }
+  streakGeo.attributes.position.needsUpdate=true;
+  streaks.material.opacity=Math.min(0.85,0.15+Math.abs(EW)*0.4);
+  leaves.forEach((l,i)=>{
+    l.x+=W*0.8*dt;l.y+=Math.sin(t*3+i)*dt*0.8;l.r+=dt*8;
+    if(Math.abs(l.x)>11||l.z>pz+6||l.y<0.05||l.y>4){l.x=-Math.sign(W||1)*10;l.y=0.2+Math.random()*2.5;l.z=pz+2-Math.random()*28;}
+    l.m.position.set(l.x,l.y,l.z);l.m.rotation.set(l.r,l.r*0.7,0);
+  });
+
+  // camera
+  const cx=(state==='dead'?player.position.x:player.position.x)*0.55;
+  shake*=0.9;
+  camera.position.set(cx+(Math.random()-.5)*shake,3.4+(Math.random()-.5)*shake,pz+6.5);
+  camera.lookAt(player.position.x*0.35,1.0,pz-7);
+  sun.position.set(pz*0-8+player.position.x,14,pz+6);sun.target.position.set(player.position.x,0,pz-2);
+
+  // HUD
+  const ms=Math.abs(wind+gustVis)*11.5;
+  $('dist').textContent=Math.floor(dist);
+  $('ms').textContent=ms.toFixed(1)+' m/s';
+  const bf=beaufort(ms);$('beau').textContent=bf+' 級';
+  $('windName').textContent=bf>=8?NAMES[4]:bf>=7?NAMES[3]:bf>=5?NAMES[1]:bf>=3?NAMES[0]:'微風';
+  $('meter').style.width=Math.min(100,ms/50*100)+'%';
+  $('meter').style.background=bf>=7?'#e8402b':'#ffcf3a';
+  $('arrow').style.transform='rotate('+(wind<0?180:0)+'deg)';
+  if(windGain&&ac){windGain.gain.setTargetAtTime(muted?0:Math.min(0.5,0.04+Math.abs(wind)*0.28),ac.currentTime,0.2);
+    windFilt.frequency.setTargetAtTime(250+Math.abs(wind)*700,ac.currentTime,0.2);}
+
+  renderer.render(scene,camera);
+  requestAnimationFrame(frame);
+}
+reset();state='menu';
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>
