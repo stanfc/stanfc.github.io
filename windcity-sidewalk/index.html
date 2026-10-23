@@ -1,4 +1,9 @@
-<!doctype html><html><head>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>風城人行道</title>
 <meta name="description" content="十月，九降風開始吹。你能在新竹的人行道上撐多遠？">
 <meta property="og:type" content="website">
 <meta property="og:title" content="風城人行道｜新竹的風好大">
@@ -12,9 +17,8 @@
 <meta name="twitter:title" content="風城人行道｜新竹的風好大">
 <meta name="twitter:description" content="在新竹的人行道上撐下去！">
 <meta name="twitter:image" content="https://stanfc.github.io/windcity-sidewalk/cover.jpg">
-<meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>風城人行道</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<script data-goatcounter="https://stanfc.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap">
 <style>
@@ -73,8 +77,25 @@ html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--paper);f
 .stat div{flex:1;background:#e6e2d6;border-radius:10px;padding:10px 12px}
 .stat .v{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums}
 .foot{font-size:11px;color:#6b747a;letter-spacing:.06em}
-@media (prefers-reduced-motion:reduce){#arrow,.tap{transition:none}}
+.alt{font-size:13px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+.alt b{font-size:18px;font-weight:900}
+#flip{top:40%;color:#fff;font-size:38px}
+.toggle{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;cursor:pointer}
+.toggle input{position:absolute;opacity:0;width:1px;height:1px}
+.toggle .sw{flex:none;width:44px;height:26px;border-radius:13px;background:#c9c4b6;position:relative;transition:background .15s}
+.toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .15s}
+.toggle input:checked+.sw{background:var(--brick)}
+.toggle input:checked+.sw::after{transform:translateX(18px)}
+.toggle input:focus-visible+.sw{outline:3px solid var(--warn);outline-offset:2px}
+.toggle small{display:block;font-size:11px;font-weight:500;color:#6b747a}
+.shout{position:fixed;left:0;top:0;z-index:6;pointer-events:none;white-space:nowrap;font-size:22px;font-weight:900;letter-spacing:.04em;
+  text-shadow:0 2px 0 var(--ink),0 0 10px rgba(0,0,0,.45);animation:shout .95s ease-out forwards}
+.shout span{display:block;transform:translate(-50%,-100%) rotate(var(--rot,0deg))}
+@keyframes shout{0%{opacity:0;scale:.3}14%{opacity:1;scale:1.25}28%{scale:1}75%{opacity:1}100%{opacity:0;translate:0 -26px}}
+@media (prefers-reduced-motion:reduce){#arrow,.tap,.toggle .sw,.toggle .sw::after{transition:none}.shout{animation:none}}
 </style>
+</head>
+<body>
 
 <div id="stage"></div>
 
@@ -82,12 +103,14 @@ html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--paper);f
   <div class="chip">
     <div class="lbl">走了</div>
     <div class="dist"><span id="dist">0</span><small>公尺</small></div>
+    <div class="alt" id="altRow" hidden>高度 <b id="alt">0.0</b> m</div>
   </div>
   <div class="chip wind">
     <div>
       <div class="lbl" id="windName">東北季風</div>
       <div class="big" id="beau">0 級</div>
       <div class="ms" id="ms">0.0 m/s</div>
+      <div class="ms" id="vms" hidden>↑ 0.0 m/s</div>
       <div class="meter"><i id="meter"></i></div>
     </div>
     <svg id="arrow" viewBox="0 0 40 40" aria-hidden="true"><path d="M4 20h24M20 10l10 10-10 10" fill="none" stroke="#ffcf3a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -95,6 +118,8 @@ html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--paper);f
 </div>
 
 <div class="gust" id="gust" hidden>強陣風!</div>
+<div class="gust" id="flip" hidden>傘開花了!</div>
+<div id="shouts" aria-hidden="true"></div>
 <div class="edge" id="edgeL"><span class="beep">叭!</span></div>
 <div class="edge" id="edgeR"><span class="beep">叭!</span></div>
 
@@ -104,12 +129,19 @@ html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--paper);f
   <div class="card">
     <h1>風城<em>人行道</em></h1>
     <p>十月，九降風開始吹。你要沿著新竹的人行道一直走下去，兩邊都是機車。</p>
-    <div class="rules">
+    <div class="rules normalOnly">
       <b>點左半邊</b><span>往左修正一步</span>
       <b>點右半邊</b><span>往右修正一步</span>
       <b>風越大</b><span>每步一樣大，所以要點越多下</span>
       <b>叭!</b><span>那一側有機車靠近，別被吹過去</span>
     </div>
+    <div class="rules hardOnly" hidden>
+      <b>點左／右半邊</b><span>往左／右修正一步</span>
+      <b>上升氣流</b><span>撐著傘會被吹上天，高度你管不了</span>
+      <b>傘開花</b><span>會突然往下掉，小心掉回車道</span>
+      <b>天上</b><span>米粉、柿餅、晶圓都在飛，左右閃開</span>
+    </div>
+    <label class="toggle"><input type="checkbox" class="hardToggle"><span class="sw"></span><span>困難模式<small>撐傘，多了上下的風</small></span></label>
     <button class="btn" id="startBtn" type="button">開始走</button>
     <div class="foot">電腦也可以用 ← → 或 A D</div>
   </div>
@@ -121,8 +153,9 @@ html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--paper);f
     <p id="overMsg">風太大，你被吹進車道。</p>
     <div class="stat">
       <div><div class="lbl" style="color:#6b747a">這次</div><div class="v" id="finalDist">0 m</div></div>
-      <div><div class="lbl" style="color:#6b747a">最遠</div><div class="v" id="bestDist">0 m</div></div>
+      <div><div class="lbl" style="color:#6b747a" id="bestLbl">最遠</div><div class="v" id="bestDist">0 m</div></div>
     </div>
+    <label class="toggle"><input type="checkbox" class="hardToggle"><span class="sw"></span><span>困難模式<small>下一局生效</small></span></label>
     <button class="btn" id="againBtn" type="button">再走一次</button>
     <button class="btn alt" id="muteBtn" type="button">風聲：開</button>
   </div>
@@ -175,7 +208,7 @@ function signTex(text,bg,fg){
   });
 }
 const SIGNS=[['新竹米粉','#c8202a','#fff5d6'],['貢丸湯','#f2c230','#14212b'],['風城','#1e5fa8','#ffffff'],
-  ['城隍廟口','#7a1d1d','#ffd56a'],['摃丸專賣','#0f7a52','#ffffff'],['機車行','#14212b','#ffcf3a'],['肉圓','#e06a1b','#ffffff'],['手搖飲','#6b3fa0','#ffffff']]
+  ['城隍廟口','#7a1d1d','#ffd56a'],['摃丸專賣','#0f7a52','#ffffff'],['機車行','#14212b','#ffcf3a'],['肉圓','#e06a1b','#ffffff'],['手搖飲','#6b3fa0','#ffffff'],['賣噹噹','#da291c','#ffc72c']]
   .map(s=>new THREE.MeshLambertMaterial({map:signTex(...s)}));
 
 // ---------- street segments ----------
@@ -267,6 +300,25 @@ function makeScooter(parked){
   }
   return g;
 }
+// rare: someone riding a giant 貢丸 instead of a scooter
+const GW_R=0.55, GONGWAN_CHANCE=0.08; // share of traffic that's a 貢丸 rider
+const gwTex=canvasTex(128,64,(g,w,h)=>{
+  g.fillStyle='#a47446';g.fillRect(0,0,w,h);
+  for(let i=0;i<260;i++){g.fillStyle=['#8a5c33','#b8865a','#7a4f2b','#c49a6c'][i%4];g.beginPath();g.arc(Math.random()*w,Math.random()*h,1+Math.random()*2.5,0,Math.PI*2);g.fill();}
+});
+const gwMat=new THREE.MeshLambertMaterial({map:gwTex});
+const gwGeo=new THREE.SphereGeometry(GW_R,18,14);
+const gwPant=new THREE.MeshLambertMaterial({color:0x2a2f38});
+function makeGongwan(){
+  const g=new THREE.Group();
+  const ball=new THREE.Mesh(gwGeo,gwMat);ball.position.y=GW_R;ball.castShadow=true;g.add(ball);g.userData.ball=ball;
+  const rm=new THREE.MeshLambertMaterial({color:[0x445566,0x6b3fa0,0x2b2b2b,0x7a6a55,0xb04040][Math.random()*5|0]});
+  const torso=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.6,0.3),rm);torso.position.set(0,GW_R*2+0.35,0.05);torso.rotation.x=-0.25;torso.castShadow=true;g.add(torso);
+  [-1,1].forEach(s=>{const leg=new THREE.Mesh(new THREE.BoxGeometry(0.14,0.55,0.14),gwPant);leg.position.set(s*0.36,GW_R*2-0.12,0);leg.rotation.z=s*0.5;g.add(leg);
+    const arm=new THREE.Mesh(new THREE.BoxGeometry(0.11,0.5,0.11),rm);arm.position.set(s*0.3,GW_R*2+0.6,0);arm.rotation.z=s*2.6;g.add(arm);});
+  const helm=new THREE.Mesh(new THREE.SphereGeometry(0.19,10,8),new THREE.MeshLambertMaterial({color:helmCols[Math.random()*helmCols.length|0]}));helm.position.set(0,GW_R*2+0.83,0);g.add(helm);
+  return g;
+}
 
 // ---------- player ----------
 const player=new THREE.Group();scene.add(player);
@@ -283,6 +335,115 @@ const legL=limb(pant,0.17,0.82,-0.12,0.84),legR=limb(pant,0.17,0.82,0.12,0.84);
 const armL=limb(coat,0.12,0.58,-0.3,1.42),armR=limb(coat,0.12,0.58,0.3,1.42);
 // hair flap that blows
 const scarf=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.08,0.06),new THREE.MeshLambertMaterial({color:0xc8202a}));scarf.position.set(0,1.42,0.05);lean.add(scarf);
+// hard mode: convenience-store clear umbrella held in the right hand
+const umb=new THREE.Group();umb.position.set(0.34,1.95,0);umb.visible=false;lean.add(umb);
+const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,1.0,6),mat.pole);shaft.position.y=0.45;umb.add(shaft);
+const handle=new THREE.Mesh(new THREE.TorusGeometry(0.07,0.02,6,10,Math.PI),new THREE.MeshLambertMaterial({color:0xf2f2f2}));handle.position.set(0.07,-0.05,0);handle.rotation.z=Math.PI;umb.add(handle);
+const canopy=new THREE.Group();canopy.position.y=0.95;umb.add(canopy);
+const cloth=new THREE.Mesh(new THREE.ConeGeometry(0.9,0.34,10,1,true),new THREE.MeshLambertMaterial({color:0xeaf3f7,transparent:true,opacity:0.5,side:THREE.DoubleSide,depthWrite:false}));canopy.add(cloth);
+for(let i=0;i<10;i++){const a=i/10*Math.PI*2,rib=new THREE.Mesh(new THREE.BoxGeometry(0.015,0.015,0.95),mat.pole);
+  rib.position.set(Math.sin(a)*0.45,0,Math.cos(a)*0.45);rib.rotation.set(0,a,0);rib.rotateX(Math.atan2(0.34,0.9));canopy.add(rib);}
+const tip=new THREE.Mesh(new THREE.SphereGeometry(0.035,6,4),mat.pole);tip.position.y=0.2;canopy.add(tip);
+
+// ---------- sky obstacles (hard mode): things the 九降風 is drying ----------
+const mifenMat=new THREE.MeshLambertMaterial({color:0xf4efe2});
+const mifenTie=new THREE.MeshLambertMaterial({color:0xc8202a});
+const strandGeo=new THREE.BoxGeometry(0.025,0.025,1.0);
+const shibingMat=new THREE.MeshLambertMaterial({color:0xd9741c});
+const shibingGeo=new THREE.SphereGeometry(0.32,14,10);
+const stemMat=new THREE.MeshLambertMaterial({color:0x4a5a2a});
+const waferTex=canvasTex(128,128,(g,w,h)=>{
+  g.fillStyle='#b8c0cc';g.fillRect(0,0,w,h);
+  for(let y=0;y<h;y+=8)for(let x=0;x<w;x+=8){g.fillStyle=`hsl(${(x*2+y*3)%360},45%,${62+((x+y)/8%2)*8}%)`;g.fillRect(x+1,y+1,6,6);}
+});
+const waferMats=[new THREE.MeshLambertMaterial({color:0xc9ced6}),new THREE.MeshLambertMaterial({map:waferTex}),new THREE.MeshLambertMaterial({map:waferTex})];
+const waferGeo=new THREE.CylinderGeometry(0.5,0.5,0.03,28);
+// school gate signs blown off 光復路
+const schoolSignGeo=new THREE.BoxGeometry(1.5,0.5,0.06);
+// white board, school colour frame + name, emblem on the left (drawn in once the image loads)
+function schoolSignTex(name,col,logoSrc){
+  const c=document.createElement('canvas');c.width=384;c.height=128;const g=c.getContext('2d');
+  const tex=new THREE.CanvasTexture(c);tex.anisotropy=4;
+  const draw=logo=>{
+    g.fillStyle='#ffffff';g.fillRect(0,0,384,128);
+    g.strokeStyle=col;g.lineWidth=8;g.strokeRect(4,4,376,120);
+    if(logo)g.drawImage(logo,14,12,104,104);
+    g.fillStyle=col;g.font='900 54px "Noto Sans TC","PingFang TC",sans-serif';
+    g.textAlign='center';g.textBaseline='middle';g.fillText(name,logo?252:192,68);
+    tex.needsUpdate=true;
+  };
+  draw(null);
+  const img=new Image();img.onload=()=>draw(img);img.src=logoSrc;
+  return tex;
+}
+const schoolSignMats={
+  nycu:new THREE.MeshLambertMaterial({map:schoolSignTex('交通大學','#0033a1','NYCU.svg')}),
+  nthu:new THREE.MeshLambertMaterial({map:schoolSignTex('清華大學','#7d2a8c','NTHU.png')})
+};
+const signEdgeMat=new THREE.MeshLambertMaterial({color:0x8a8f94});
+// a chunk knocked off 巨城
+const bigcityTex=signTex('巨城','#c8202a','#ffffff');
+const concreteMat=new THREE.MeshLambertMaterial({color:0xbdb8ae});
+const glassMat=new THREE.MeshLambertMaterial({color:0x7fa6b8});
+// a whole plate of 客家小炒
+const plateMat=new THREE.MeshLambertMaterial({color:0xf7f5ef});
+const xcCols=[0xd9b98a,0x8a5a32,0x5f8f3a,0xe8e2c8,0xc7472c];
+// relative weights: bigger number = shows up more often
+const SKY_WEIGHTS={mifen:100, shibing:100, wafer:1, nycu:5, nthu:5, bigcity:2, xiaochao:10};
+function pickSkyKind(){
+  const total=Object.values(SKY_WEIGHTS).reduce((a,b)=>a+b,0);
+  let r=Math.random()*total;
+  for(const k in SKY_WEIGHTS){r-=SKY_WEIGHTS[k];if(r<0)return k;}
+  return 'mifen';
+}
+const SKY_DRIFT=0.35;
+const SKY_RADIUS={shibing:0.5, nycu:0.8, nthu:0.8, bigcity:0.65, xiaochao:0.55}; // hit radius, default 0.6
+// what they yell just before they hit you
+const SHOUTS={
+  wafer:{color:'#9ee7ff',lines:['我是絆倒體','3 奈米來了！','撞破這片台積電要跌了！']},
+  shibing:{color:'#ffb35c',lines:['柿柿如意！']},
+  mifen:{color:'#fff5d6',lines:['百分百純米！','米粉還沒曬乾！','米粉湯配貢丸！']},
+  nycu:{color:'#8fb4ff',lines:['梅竹賽交大贏！','光復路飛過來！']},
+  nthu:{color:'#d9a8ff',lines:['梅竹賽清大贏！','清交一家！']},
+  bigcity:{color:'#ff8a7a',lines:['周年慶！','停車場客滿！']},
+  xiaochao:{color:'#ffd27a',lines:['趁熱吃！','加碗白飯！']}
+};
+const _v=new THREE.Vector3();
+const SHOUT_CHANCE=0.7, SHOUT_GAP=1; // keep the jokes rare so they stay funny
+let shoutCD=0;
+function shout(o){
+  const cfg=SHOUTS[o.kind],el=document.createElement('div');
+  el.className='shout';el.style.color=cfg.color;
+  el.innerHTML='<span></span>';el.firstChild.textContent=cfg.lines[Math.random()*cfg.lines.length|0];
+  el.firstChild.style.setProperty('--rot',(Math.random()*16-8).toFixed(1)+'deg');
+  $('shouts').appendChild(el);o.el=el;
+  setTimeout(()=>{el.remove();if(o.el===el)o.el=null;},950);
+}
+function makeSkyThing(kind){
+  const g=new THREE.Group();
+  if(kind==='mifen'){
+    for(let i=0;i<14;i++){const s=new THREE.Mesh(strandGeo,mifenMat);s.position.set((Math.random()-.5)*0.22,(Math.random()-.5)*0.22,0);s.rotation.set((Math.random()-.5)*0.25,(Math.random()-.5)*0.25,0);g.add(s);}
+    const tie=new THREE.Mesh(new THREE.TorusGeometry(0.14,0.03,6,12),mifenTie);g.add(tie);
+  }else if(kind==='shibing'){
+    const b=new THREE.Mesh(shibingGeo,shibingMat);b.scale.set(1,0.38,1);g.add(b);
+    const st=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.07,0.05,6),stemMat);st.position.y=0.13;g.add(st);
+  }else if(kind==='nycu'||kind==='nthu'){
+    const sm=schoolSignMats[kind];
+    g.add(new THREE.Mesh(schoolSignGeo,[signEdgeMat,signEdgeMat,signEdgeMat,signEdgeMat,sm,sm]));
+  }else if(kind==='bigcity'){
+    const slab=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.55,0.25),concreteMat);g.add(slab);
+    const sign=new THREE.Mesh(new THREE.PlaneGeometry(0.7,0.26),new THREE.MeshLambertMaterial({map:bigcityTex,side:THREE.DoubleSide}));sign.position.set(0,0.06,0.13);g.add(sign);
+    const shard=new THREE.Mesh(new THREE.BoxGeometry(0.35,0.4,0.05),glassMat);shard.position.set(0.5,-0.15,0);shard.rotation.z=0.5;g.add(shard);
+  }else if(kind==='xiaochao'){
+    g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.32,0.06,20),plateMat));
+    for(let i=0;i<18;i++){const a=Math.random()*Math.PI*2,r=Math.random()*0.3;
+      const p=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.04,0.04),new THREE.MeshLambertMaterial({color:xcCols[i%xcCols.length]}));
+      p.position.set(Math.cos(a)*r,0.06+Math.random()*0.05,Math.sin(a)*r);p.rotation.y=Math.random()*Math.PI;g.add(p);}
+  }else{
+    g.add(new THREE.Mesh(waferGeo,waferMats));
+  }
+  return g;
+}
 
 // ---------- wind streaks ----------
 const NSTREAK=420;
@@ -296,7 +457,7 @@ const leafGeo=new THREE.PlaneGeometry(0.14,0.09);
 const leaves=[];for(let i=0;i<40;i++){const l=new THREE.Mesh(leafGeo,new THREE.MeshLambertMaterial({color:[0x9a7a3a,0x6f8a3a,0xb5553a][i%3],side:THREE.DoubleSide}));scene.add(l);leaves.push({m:l});}
 function resetStreak(d,pz,anywhere){
   d.x=anywhere?(Math.random()*20-10):(-Math.sign(wind||1)*(10+Math.random()*3));
-  d.y=0.3+Math.random()*4;d.z=pz+6-Math.random()*40;d.sp=0.7+Math.random()*0.6;
+  d.y=hard?Math.max(0,py-2)+0.3+Math.random()*7:0.3+Math.random()*4;d.z=pz+6-Math.random()*40;d.sp=0.7+Math.random()*0.6;
 }
 
 // ---------- state ----------
@@ -304,10 +465,16 @@ let state='menu', px=0, pz=0, vxNudge=0, wind=0, windTarget=0, phaseT=0, t=0, di
 let gustT=0,gustAmt=0,gustVis=0,gustCD=4;
 let lanes=[], scooters=[], spawnL=0, spawnR=0, hitDir=0, deathMsg='';
 const STEP=0.2, NUDGE_TIME=0.09, WALK=2.6;
-let best=0;try{best=+localStorage.getItem('windcity_best')||0;}catch(e){}
+// hard mode: umbrella + vertical wind
+let hard=false, py=0, windV=0, windVTarget=0, phaseVT=0, flipT=0, sky=[], spawnSky=0, deathY=0;
+const PY_MAX=9, GROUND_HIT=0.8;
+const bestKey=()=>hard?'windcity_best_hard':'windcity_best';
+function loadBest(){try{return +localStorage.getItem(bestKey())||0;}catch(e){return 0;}}
 
 function reset(){
   px=0;pz=0;vxNudge=0;wind=0;gustT=0;gustAmt=0;gustVis=0;gustCD=4;$('gust').hidden=true;windTarget=0.3;phaseT=2.5;t=0;dist=0;deadT=0;shake=0;hitDir=0;
+  py=0;windV=0;windVTarget=0;phaseVT=1.5;flipT=0;$('flip').hidden=true;spawnSky=3;
+  sky.forEach(o=>scene.remove(o.m));sky=[];$('shouts').textContent='';shoutCD=0;
   scooters.forEach(s=>scene.remove(s.m));scooters=[];spawnL=0.6;spawnR=1.2;
   segments.forEach((g,i)=>{g.position.z=-i*SEG+SEG/2-2;dressSegment(g);});
   streakData.length=0;for(let i=0;i<NSTREAK;i++){const d={};resetStreak(d,0,true);streakData.push(d);}
@@ -327,17 +494,39 @@ function nextPhase(){
   windTarget=calm?dir*0.2:dir*Math.min(3.3,base+Math.random()*range);
   phaseT=calm?0.8:1.1+Math.random()*(2.0-lf*0.8);
 }
+// mostly updrafts, so the umbrella keeps trying to lift you
+function nextPhaseV(){
+  const lf=Math.min(1,dist/350);
+  windVTarget=(windVTarget===0||Math.random()<0.68)?0.3+Math.random()*(0.6+0.8*lf):-(0.3+Math.random()*0.7);
+  phaseVT=1.2+Math.random()*1.4;
+}
 
 // ---------- input ----------
-function nudge(d){if(state!=='play')return;vxNudge+=d*STEP;flashTap(d);}
-function flashTap(d){const el=d<0?$('tapL'):$('tapR');el.classList.add('on');setTimeout(()=>el.classList.remove('on'),70);}
-stage.addEventListener('pointerdown',e=>{e.preventDefault();nudge(e.clientX<innerWidth/2?-1:1);});
+function nudge(d){if(state!=='play')return;vxNudge+=d*STEP;flashTap(d<0?'tapL':'tapR');}
+function flashTap(id){const el=$(id);el.classList.add('on');setTimeout(()=>el.classList.remove('on'),70);}
+stage.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  nudge(e.clientX<innerWidth/2?-1:1);
+});
 addEventListener('keydown',e=>{
   if(e.repeat)return;
-  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')nudge(-1);
-  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D')nudge(1);
-  if((e.key===' '||e.key==='Enter')&&state!=='play'&&deadT>1.2)start();
+  const k=e.key.toLowerCase();
+  if(k==='arrowleft'||k==='a')nudge(-1);
+  if(k==='arrowright'||k==='d')nudge(1);
+  if((e.key===' '||e.key==='Enter')&&(state==='menu'||(state==='dead'&&deadT>1.2))){
+    if(e.target.closest&&e.target.closest('input,button'))return;
+    e.preventDefault();start();
+  }
 });
+function setHard(on){
+  hard=on;
+  document.querySelectorAll('.hardToggle').forEach(c=>c.checked=on);
+  document.querySelectorAll('.hardOnly').forEach(el=>el.hidden=!on);
+  document.querySelectorAll('.normalOnly').forEach(el=>el.hidden=on);
+  ['altRow','vms'].forEach(id=>$(id).hidden=!on);
+  umb.visible=on;
+}
+document.querySelectorAll('.hardToggle').forEach(c=>c.addEventListener('change',()=>setHard(c.checked)));
 document.addEventListener('gesturestart',e=>e.preventDefault());
 
 // ---------- audio: filtered noise follows wind ----------
@@ -362,7 +551,12 @@ function beepSound(){
 }
 $('muteBtn').addEventListener('click',()=>{muted=!muted;$('muteBtn').textContent='風聲：'+(muted?'關':'開');});
 
+// GoatCounter events (count.js skips localhost, so local testing isn't recorded)
+function track(path,title){try{window.goatcounter&&window.goatcounter.count&&window.goatcounter.count({path,title,event:true});}catch(e){}}
+const mode=()=>hard?'hard':'normal';
+
 function start(){
+  track('start-'+mode(),'開始（'+(hard?'困難':'普通')+'）');
   initAudio();if(ac&&ac.state==='suspended')ac.resume();
   reset();state='play';$('startScreen').hidden=true;$('overScreen').hidden=true;
 }
@@ -371,7 +565,8 @@ $('againBtn').addEventListener('click',start);
 
 // ---------- scooter spawning ----------
 function spawn(side){
-  const m=makeScooter(false);scene.add(m);
+  const gw=Math.random()<GONGWAN_CHANCE;
+  const m=gw?makeGongwan():makeScooter(false);scene.add(m);
   // left lane: oncoming (+z). right lane: same direction, overtaking from behind (-z)
   const oncoming=side<0;
   const speed=(oncoming?10:12)+Math.random()*4;
@@ -379,17 +574,47 @@ function spawn(side){
   m.rotation.y=oncoming?Math.PI:0;
   const x=side*(LANE_C+(Math.random()-0.5)*0.9);
   m.position.set(x,0,z);
-  scooters.push({m,side,v:oncoming?speed:-speed,x,warned:false});
+  scooters.push({m,side,v:oncoming?speed:-speed,x,warned:false,gw,hx:gw?0.72:0.62,hz:gw?0.85:1.05});
 }
 
-function die(s){
-  state='dead';deadT=0;hitDir=Math.sign(px)||1;shake=0.6;
+function spawnSkyThing(){
+  const kind=pickSkyKind();
+  const m=makeSkyThing(kind);scene.add(m);
+  const vz=9+Math.random()*4, T=55/(vz+WALK);
+  // aim near the player: start upwind so the sideways drift carries it back over the player's x
+  const x=Math.max(-3.6,Math.min(3.6,px+(Math.random()*2-1)*1.0-(wind+gustVis)*SKY_DRIFT*T));
+  m.position.set(x,py+1.1+(Math.random()*4-2),pz-55);
+  sky.push({m,kind,vz,yOff:(Math.random()*2-1)*0.4,spin:(Math.random()-.5)*10,r:SKY_RADIUS[kind]||0.6});
+}
+
+// [title, emphasised tail, message]
+const DEATHS={
+  scooterL:['被對向機車','撞了','風把你吹進左邊的對向車道。'],
+  scooterR:['被後面的機車','撞了','風把你推進右邊車道，後面的機車來不及閃。'],
+  gwL:['被對向的貢丸','撞了','風把你吹進左邊車道，迎面滾來一顆騎著人的貢丸。'],
+  gwR:['被後面的貢丸','撞了','風把你推進右邊車道，後面有人騎著貢丸衝過來。'],
+  mifen:['被米粉','甩臉了','九降風是曬米粉的好天氣，一整把米粉被吹上天，迎面甩過來。'],
+  shibing:['被柿餅','砸中了','新埔的柿餅也在曬，被風一起捲上來了。'],
+  wafer:['被晶圓','打中了','竹科的晶圓被吹出來了。這片你賠不起。'],
+  nycu:['被交大招牌','砸中了','交大的招牌被吹下來，飛過光復路直直朝你來。'],
+  nthu:['被清大招牌','砸中了','清大的招牌也被吹飛了，梅竹賽在空中延長賽。'],
+  bigcity:['被巨城碎片','打中了','連巨城都被吹掉一塊，你還想在路上走？'],
+  xiaochao:['被客家小炒','糊臉了','一整盤客家小炒被吹過來，魷魚還黏在你臉上。']
+};
+function die(kind,dir){
+  state='dead';deadT=0;hitDir=dir||Math.sign(px)||1;shake=0.6;deathY=py;
+  $('flip').hidden=true;$('gust').hidden=true;
   const dd=Math.floor(dist);
-  if(dd>best){best=dd;try{localStorage.setItem('windcity_best',best);}catch(e){}}
+  let best=loadBest();
+  if(dd>best){best=dd;try{localStorage.setItem(bestKey(),best);}catch(e){}}
   $('finalDist').textContent=dd+' m';$('bestDist').textContent=best+' m';
-  const lines=s.side<0?['被對向機車撞了','風把你吹進左邊的對向車道。']:['被後面的機車撞了','風把你推進右邊車道，後面的機車來不及閃。'];
-  $('overTitle').innerHTML=lines[0].replace(/撞了$/,'<em>撞了</em>');
-  $('overMsg').textContent=lines[1]+(dd>=300?' 在新竹撐了 '+dd+' 公尺，算是在地人了。':'');
+  $('bestLbl').textContent=hard?'最遠（困難）':'最遠';
+  const [title,em,msg]=DEATHS[kind];
+  const bucket=dd<100?'0-99':dd<200?'100-199':dd<300?'200-299':dd<500?'300-499':'500+';
+  track('death-'+mode()+'-'+kind,title+em);
+  track('dist-'+mode()+'-'+bucket,bucket+' m');
+  $('overTitle').innerHTML=title+'<em>'+em+'</em>';
+  $('overMsg').textContent=msg+(dd>=300?' 在新竹撐了 '+dd+' 公尺，算是在地人了。':'');
   beepSound();
 }
 
@@ -406,10 +631,22 @@ function frame(now){
     const gust=Math.sin(t*3.1)*0.12+Math.sin(t*7.3)*0.08;
     wind+=(windTarget-wind)*Math.min(1,dt*3.4);
     gustCD-=dt;
-    if(gustCD<=0&&gustT<=0&&Math.abs(wind)>0.4){gustT=0.9;gustAmt=Math.sign(wind)*(0.9+Math.random()*0.7+Math.min(1,dist/350)*0.8);gustCD=1.8+Math.random()*2.5;$('gust').hidden=false;shake=Math.max(shake,0.25);}
+    if(gustCD<=0&&gustT<=0&&Math.abs(wind)>0.4){gustT=0.9;gustAmt=Math.sign(wind)*(0.9+Math.random()*0.7+Math.min(1,dist/350)*0.8);gustCD=1.8+Math.random()*2.5;$('gust').hidden=false;shake=Math.max(shake,0.25);
+      // strong gusts can turn the umbrella inside out
+      if(hard&&flipT<=0&&py>1.5&&Math.random()<0.3+(windV>0.6?0.2:0)){flipT=2.0;$('flip').hidden=false;}}
     if(gustT>0){gustT-=dt;if(gustT<=0){gustAmt=0;$('gust').hidden=true;}}
     gustVis+=(gustAmt-gustVis)*Math.min(1,dt*8);
-    const drift=wind*(1+gust)+gustVis;
+    const drift=(wind*(1+gust)+gustVis)*(hard?(flipT>0?0.85:1.1):1);
+    if(hard){
+      phaseVT-=dt;if(phaseVT<=0)nextPhaseV();
+      windV+=(windVTarget-windV)*Math.min(1,dt*2.5);
+      if(flipT>0){flipT-=dt;if(flipT<=0)$('flip').hidden=true;}
+      // no vertical control: updrafts set the altitude you drift toward, a flipped umbrella drops you
+      const pyTarget=flipT>0?0:Math.max(0,Math.min(PY_MAX,windV*7));
+      py+=(pyTarget-py)*Math.min(1,dt*(flipT>0?2.2:0.9));
+      spawnSky-=dt;
+      if(spawnSky<=0){spawnSkyThing();spawnSky=1.1+Math.random()*(1.2-Math.min(1,dist/700)*0.5);}
+    }
     // apply nudge smoothly over NUDGE_TIME, constant total per tap
     const take=Math.sign(vxNudge)*Math.min(Math.abs(vxNudge),STEP/NUDGE_TIME*dt);
     vxNudge-=take;
@@ -425,7 +662,8 @@ function frame(now){
     deadT+=dt;
     player.position.x+=hitDir*dt*3*Math.max(0,1-deadT);
     player.rotation.z=-hitDir*Math.min(Math.PI/2,deadT*5);
-    player.position.y=Math.max(0,Math.sin(Math.min(Math.PI,deadT*4))*0.8);
+    if(deathY>0.5)player.position.y=Math.max(0,deathY+Math.sin(Math.min(Math.PI,deadT*4))*0.8-6*deadT*deadT);
+    else player.position.y=Math.max(0,Math.sin(Math.min(Math.PI,deadT*4))*0.8);
     if(deadT>0.9&&$('overScreen').hidden){$('overScreen').hidden=false;}
     wind*=0.99;
   }else{ // menu: idle demo
@@ -437,29 +675,56 @@ function frame(now){
   for(let i=scooters.length-1;i>=0;i--){
     const s=scooters[i];s.m.position.z+=s.v*dt;
     s.m.rotation.z=Math.sin(t*2+i)*0.03;
+    if(s.gw)s.m.userData.ball.rotation.x-=Math.abs(s.v)*dt/GW_R;
     const dz=s.m.position.z-pz;
-    if(state==='play'){
+    if(state==='play'&&py<GROUND_HIT){
       const near=s.v>0?(dz<0&&dz>-26):(dz>0&&dz<16);
       const risky=Math.abs(px)>SIDE-0.35;
       if(near&&risky&&Math.sign(px)===s.side){if(s.side<0)warnL=true;else warnR=true;
         if(!s.warned){s.warned=true;beepSound();}}
-      if(Math.abs(px-s.m.position.x)<0.62&&Math.abs(dz)<1.05){die(s);}
+      if(Math.abs(px-s.m.position.x)<s.hx&&Math.abs(dz)<s.hz){die((s.gw?'gw':'scooter')+(s.side<0?'L':'R'));}
     }
     if((s.v>0&&dz>12)||(s.v<0&&dz<-90)){scene.remove(s.m);scooters.splice(i,1);}
   }
   $('edgeL').style.opacity=warnL?1:0;$('edgeR').style.opacity=warnR?1:0;
+
+  // sky obstacles
+  shoutCD-=dt;
+  for(let i=sky.length-1;i>=0;i--){
+    const o=sky[i];
+    o.m.position.z+=o.vz*dt;o.m.position.x+=(wind+gustVis)*SKY_DRIFT*dt;
+    // carried by the same updraft, so it settles toward the player's height
+    o.m.position.y+=(py+1.1+o.yOff-o.m.position.y)*Math.min(1,dt*1.2);
+    o.m.rotation.x+=o.spin*dt;o.m.rotation.z+=o.spin*0.6*dt;
+    const dz=o.m.position.z-pz;
+    if(state==='play'&&Math.abs(dz)<0.6&&Math.hypot(px-o.m.position.x,py+1.1-o.m.position.y)<o.r)die(o.kind,Math.sign(px-o.m.position.x)||1);
+    if(state==='play'&&!o.shouted&&SHOUTS[o.kind]&&dz>-13&&dz<-4&&Math.abs(px-o.m.position.x)<1.6&&Math.abs(py+1.1-o.m.position.y)<1.6){o.shouted=true;if(shoutCD<=0&&Math.random()<SHOUT_CHANCE){shout(o);shoutCD=SHOUT_GAP;}}
+    if(o.el){_v.copy(o.m.position).project(camera);o.el.style.transform=`translate(${(_v.x+1)/2*innerWidth}px,${(1-_v.y)/2*innerHeight-18}px)`;}
+    if(dz>12){scene.remove(o.m);if(o.el)o.el.remove();sky.splice(i,1);}
+  }
 
   // recycle segments
   segments.forEach(g=>{if(g.position.z-SEG/2>pz+10){g.position.z-=SEG*NSEG;dressSegment(g);}});
 
   // player pose
   if(state!=='dead'){
-    player.position.set(state==='menu'?Math.sin(t*0.4)*0.3:px,0,pz);
-    const sw=Math.sin(walk);
-    legL.rotation.x=sw*0.6;legR.rotation.x=-sw*0.6;armL.rotation.x=-sw*0.5;armR.rotation.x=sw*0.5;
-    lean.position.y=Math.abs(Math.cos(walk))*0.05;
-    const leanTarget=-(wind+gustVis)*0.4;lean.rotation.z+=(leanTarget-lean.rotation.z)*Math.min(1,dt*6);
+    player.position.set(state==='menu'?Math.sin(t*0.4)*0.3:px,py,pz);
+    const sw=Math.sin(walk), airborne=py>0.3;
+    // dangling, kicking legs once the umbrella lifts you off the ground
+    if(airborne){legL.rotation.x=Math.sin(t*9)*0.35;legR.rotation.x=-Math.sin(t*9)*0.35;}
+    else{legL.rotation.x=sw*0.6;legR.rotation.x=-sw*0.6;}
+    armL.rotation.x=-sw*0.5;armR.rotation.x=sw*0.5;
+    lean.position.y=airborne?0:Math.abs(Math.cos(walk))*0.05;
+    const leanTarget=-(wind+gustVis)*(hard?0.18:0.4);lean.rotation.z+=(leanTarget-lean.rotation.z)*Math.min(1,dt*6);
     armL.rotation.z=-0.15-Math.max(0,wind)*0.6;armR.rotation.z=0.15-Math.min(0,wind)*0.6;
+    if(hard){armR.rotation.x=0;armR.rotation.z=Math.PI*0.97;}
+  }
+  if(umb.visible){
+    // 開花: canopy flips inside out and flaps
+    const inv=flipT>0;
+    canopy.scale.set(inv?1.15:1,inv?-1.3:1,inv?1.15:1);
+    canopy.rotation.z=inv?Math.sin(t*25)*0.2:-(wind+gustVis)*0.08;
+    canopy.rotation.x=inv?Math.cos(t*21)*0.15:0;
   }
   scarf.position.x=wind*0.25;scarf.rotation.z=Math.sin(t*20)*0.15*Math.abs(wind);
   player.position.z=pz;
@@ -473,15 +738,17 @@ function frame(now){
   // streaks
   const EW=wind+gustVis;
   shake=Math.max(shake,Math.abs(EW)*0.05);
-  const W=EW*14;
-  const len=0.5+Math.abs(EW)*2.4;
+  const W=EW*14, V=hard?windV*7:0;
+  const len=0.5+(Math.abs(EW)+Math.abs(V)/14)*2.4;
+  const WL=Math.hypot(W,V), ex=WL>1e-3?W/WL:1, ey=WL>1e-3?V/WL:0;
+  const yLo=hard?Math.max(0,py-2.5):0, yHi=hard?py+8:99;
   for(let i=0;i<NSTREAK;i++){
     const d=streakData[i];
-    d.x+=W*d.sp*dt;
-    if(d.x>12||d.x<-12||d.z>pz+8){resetStreak(d,pz,false);if(d.z>pz+8)d.z=pz-30*Math.random();}
+    d.x+=W*d.sp*dt;d.y+=V*d.sp*dt;
+    if(d.x>12||d.x<-12||d.z>pz+8||d.y<yLo||d.y>yHi){resetStreak(d,pz,false);if(d.z>pz+8)d.z=pz-30*Math.random();}
     const o=i*6;
     streakPos[o]=d.x;streakPos[o+1]=d.y;streakPos[o+2]=d.z;
-    streakPos[o+3]=d.x-Math.sign(W||1)*len*d.sp;streakPos[o+4]=d.y;streakPos[o+5]=d.z;
+    streakPos[o+3]=d.x-ex*len*d.sp;streakPos[o+4]=d.y-ey*len*d.sp;streakPos[o+5]=d.z;
   }
   streakGeo.attributes.position.needsUpdate=true;
   streaks.material.opacity=Math.min(0.85,0.15+Math.abs(EW)*0.4);
@@ -494,21 +761,27 @@ function frame(now){
   // camera
   const cx=(state==='dead'?player.position.x:player.position.x)*0.55;
   shake*=0.9;
-  camera.position.set(cx+(Math.random()-.5)*shake,3.4+(Math.random()-.5)*shake,pz+6.5);
-  camera.lookAt(player.position.x*0.35,1.0,pz-7);
+  const cy=Math.min(player.position.y,PY_MAX+2)*0.9;
+  camera.position.set(cx+(Math.random()-.5)*shake,3.4+cy+(Math.random()-.5)*shake,pz+6.5);
+  camera.lookAt(player.position.x*0.35,1.0+cy,pz-7);
   sun.position.set(pz*0-8+player.position.x,14,pz+6);sun.target.position.set(player.position.x,0,pz-2);
 
   // HUD
-  const ms=Math.abs(wind+gustVis)*11.5;
+  const ms=Math.hypot(wind+gustVis,hard?windV:0)*11.5;
+  if(hard){
+    $('alt').textContent=py.toFixed(1);
+    $('vms').textContent=(windV>=0?'↑ ':'↓ ')+(Math.abs(windV)*11.5).toFixed(1)+' m/s';
+  }
   $('dist').textContent=Math.floor(dist);
   $('ms').textContent=ms.toFixed(1)+' m/s';
   const bf=beaufort(ms);$('beau').textContent=bf+' 級';
   $('windName').textContent=bf>=8?NAMES[4]:bf>=7?NAMES[3]:bf>=5?NAMES[1]:bf>=3?NAMES[0]:'微風';
   $('meter').style.width=Math.min(100,ms/50*100)+'%';
   $('meter').style.background=bf>=7?'#e8402b':'#ffcf3a';
-  $('arrow').style.transform='rotate('+(wind<0?180:0)+'deg)';
-  if(windGain&&ac){windGain.gain.setTargetAtTime(muted?0:Math.min(0.5,0.04+Math.abs(wind)*0.28),ac.currentTime,0.2);
-    windFilt.frequency.setTargetAtTime(250+Math.abs(wind)*700,ac.currentTime,0.2);}
+  $('arrow').style.transform='rotate('+(hard?-Math.atan2(windV,wind+gustVis)*180/Math.PI:(wind<0?180:0))+'deg)';
+  const loud=Math.abs(wind)+(hard?Math.abs(windV)*0.5:0);
+  if(windGain&&ac){windGain.gain.setTargetAtTime(muted?0:Math.min(0.5,0.04+loud*0.28),ac.currentTime,0.2);
+    windFilt.frequency.setTargetAtTime(250+loud*700,ac.currentTime,0.2);}
 
   renderer.render(scene,camera);
   requestAnimationFrame(frame);
