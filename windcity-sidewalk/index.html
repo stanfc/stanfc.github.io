@@ -389,7 +389,7 @@ const glassMat=new THREE.MeshLambertMaterial({color:0x7fa6b8});
 const plateMat=new THREE.MeshLambertMaterial({color:0xf7f5ef});
 const xcCols=[0xd9b98a,0x8a5a32,0x5f8f3a,0xe8e2c8,0xc7472c];
 // relative weights: bigger number = shows up more often
-const SKY_WEIGHTS={mifen:100, shibing:100, wafer:1, nycu:5, nthu:5, bigcity:2, xiaochao:10};
+const SKY_WEIGHTS={mifen:100, shibing:100, wafer:3, nycu:5, nthu:5, bigcity:5, xiaochao:10};
 function pickSkyKind(){
   const total=Object.values(SKY_WEIGHTS).reduce((a,b)=>a+b,0);
   let r=Math.random()*total;
