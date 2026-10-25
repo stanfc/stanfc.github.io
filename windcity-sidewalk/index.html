@@ -80,19 +80,38 @@ html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--paper);f
 .alt{font-size:13px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
 .alt b{font-size:18px;font-weight:900}
 #flip{top:40%;color:#fff;font-size:38px}
-.toggle{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;cursor:pointer}
-.toggle input{position:absolute;opacity:0;width:1px;height:1px}
-.toggle .sw{flex:none;width:44px;height:26px;border-radius:13px;background:#c9c4b6;position:relative;transition:background .15s}
-.toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .15s}
-.toggle input:checked+.sw{background:var(--brick)}
-.toggle input:checked+.sw::after{transform:translateX(18px)}
-.toggle input:focus-visible+.sw{outline:3px solid var(--warn);outline-offset:2px}
-.toggle small{display:block;font-size:11px;font-weight:500;color:#6b747a}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#e6e2d6;border-radius:12px;padding:4px}
+.modes label{position:relative;cursor:pointer}
+.modes input{position:absolute;opacity:0;width:1px;height:1px}
+.modes span{display:block;text-align:center;padding:9px 0;border-radius:9px;font-size:14px;font-weight:900;color:#6b747a;transition:background .15s,color .15s}
+.modes input:checked+span{background:var(--ink);color:var(--paper)}
+.modes input[value=hell]:checked+span{background:#b3140a;color:#fff}
+.modes input:focus-visible+span{outline:3px solid var(--warn);outline-offset:1px}
+.modeHint{margin-top:-6px;font-size:11px;color:#6b747a;text-align:center}
+.screen{overflow-y:auto}
+#edgeB{position:fixed;left:0;right:0;bottom:0;height:30%;z-index:3;pointer-events:none;opacity:0;transition:opacity .15s;
+  background:linear-gradient(0deg,rgba(232,64,43,.6),transparent)}
+#edgeB .beep{left:50%;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);transform:translateX(-50%);white-space:nowrap}
+#hellIntro{position:fixed;inset:0;z-index:20;overflow:hidden;cursor:pointer;
+  background:radial-gradient(circle at 50% 45%,rgba(150,10,0,.75),rgba(15,0,0,.94));transition:opacity .45s}
+#hellIntro.out{opacity:0}
+#hellIntro.shake{animation:hiShake .45s linear}
+.hi-c{position:absolute;width:var(--w);border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.65);background:#fff;
+  transform:translate(-50%,-50%) rotate(var(--r));animation:hiPop .3s cubic-bezier(.2,1.6,.4,1) both}
+.hi-title{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-4deg);text-align:center;opacity:0;pointer-events:none;width:100%}
+.hi-title b{display:block;font-size:clamp(60px,19vw,128px);font-weight:900;line-height:1;color:#ff2a1a;letter-spacing:.04em;
+  -webkit-text-stroke:3px #1a0000;text-shadow:0 6px 0 #1a0000,0 0 40px rgba(255,40,20,.8)}
+.hi-title span{display:inline-block;margin-top:14px;padding:6px 14px;background:#ffcf3a;color:#1a0000;font-size:clamp(16px,4.6vw,24px);font-weight:900;transform:rotate(2deg)}
+.hi-title.on{animation:hiSlam .5s cubic-bezier(.2,1.4,.4,1) forwards}
+.hi-skip{position:absolute;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);font-size:12px;color:rgba(255,255,255,.6)}
+@keyframes hiPop{from{opacity:0;transform:translate(-50%,-50%) rotate(var(--r)) scale(2.4)}to{opacity:1;transform:translate(-50%,-50%) rotate(var(--r)) scale(1)}}
+@keyframes hiSlam{0%{opacity:0;transform:translate(-50%,-50%) rotate(-12deg) scale(3.2)}100%{opacity:1;transform:translate(-50%,-50%) rotate(-4deg) scale(1)}}
+@keyframes hiShake{0%,100%{transform:none}20%{transform:translate(-14px,8px)}40%{transform:translate(12px,-10px)}60%{transform:translate(-8px,-6px)}80%{transform:translate(6px,8px)}}
 .shout{position:fixed;left:0;top:0;z-index:6;pointer-events:none;white-space:nowrap;font-size:22px;font-weight:900;letter-spacing:.04em;
   text-shadow:0 2px 0 var(--ink),0 0 10px rgba(0,0,0,.45);animation:shout .95s ease-out forwards}
 .shout span{display:block;transform:translate(-50%,-100%) rotate(var(--rot,0deg))}
 @keyframes shout{0%{opacity:0;scale:.3}14%{opacity:1;scale:1.25}28%{scale:1}75%{opacity:1}100%{opacity:0;translate:0 -26px}}
-@media (prefers-reduced-motion:reduce){#arrow,.tap,.toggle .sw,.toggle .sw::after{transition:none}.shout{animation:none}}
+@media (prefers-reduced-motion:reduce){#arrow,.tap,.modes span{transition:none}.shout,.hi-c,#hellIntro.shake{animation:none}.hi-title.on{animation:none;opacity:1}}
 </style>
 </head>
 <body>
@@ -122,6 +141,7 @@ html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--paper);f
 <div id="shouts" aria-hidden="true"></div>
 <div class="edge" id="edgeL"><span class="beep">叭!</span></div>
 <div class="edge" id="edgeR"><span class="beep">叭!</span></div>
+<div id="edgeB"><span class="beep">叭叭! 後面有車</span></div>
 
 <div class="taps" aria-hidden="true"><div class="tap" id="tapL">←</div><div class="tap" id="tapR">→</div></div>
 
@@ -129,19 +149,30 @@ html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--paper);f
   <div class="card">
     <h1>風城<em>人行道</em></h1>
     <p>十月，九降風開始吹。你要沿著新竹的人行道一直走下去，兩邊都是機車。</p>
-    <div class="rules normalOnly">
+    <div class="rules" data-modes="normal">
       <b>點左半邊</b><span>往左修正一步</span>
       <b>點右半邊</b><span>往右修正一步</span>
       <b>風越大</b><span>每步一樣大，所以要點越多下</span>
       <b>叭!</b><span>那一側有機車靠近，別被吹過去</span>
     </div>
-    <div class="rules hardOnly" hidden>
+    <div class="rules" data-modes="hard" hidden>
       <b>點左／右半邊</b><span>往左／右修正一步</span>
       <b>上升氣流</b><span>撐著傘會被吹上天，高度你管不了</span>
       <b>傘開花</b><span>會突然往下掉，小心掉回車道</span>
       <b>天上</b><span>米粉、柿餅、晶圓都在飛，左右閃開</span>
     </div>
-    <label class="toggle"><input type="checkbox" class="hardToggle"><span class="sw"></span><span>困難模式<small>撐傘，多了上下的風</small></span></label>
+    <div class="rules" data-modes="hell" hidden>
+      <b>沒有人行道</b><span>中間也是馬路，兩邊只有綠色油漆</span>
+      <b>機車</b><span>騎在人行道上，前後都會來</span>
+      <b>九降風</b><span>機車騎一騎也會被吹上人行道</span>
+      <b>貢丸</b><span>新竹人都騎貢丸</span>
+      <b>還有</b><span>困難模式的傘和天上的東西</span>
+    </div>
+    <div class="modes" role="radiogroup" aria-label="模式">
+      <label><input type="radio" name="mode1" value="normal" checked><span>普通</span></label>
+      <label><input type="radio" name="mode1" value="hard"><span>困難</span></label>
+      <label><input type="radio" name="mode1" value="hell"><span>地獄</span></label>
+    </div>
     <button class="btn" id="startBtn" type="button">開始走</button>
     <div class="foot">電腦也可以用 ← → 或 A D</div>
   </div>
@@ -155,10 +186,21 @@ html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--paper);f
       <div><div class="lbl" style="color:#6b747a">這次</div><div class="v" id="finalDist">0 m</div></div>
       <div><div class="lbl" style="color:#6b747a" id="bestLbl">最遠</div><div class="v" id="bestDist">0 m</div></div>
     </div>
-    <label class="toggle"><input type="checkbox" class="hardToggle"><span class="sw"></span><span>困難模式<small>下一局生效</small></span></label>
+    <div class="modes" role="radiogroup" aria-label="模式">
+      <label><input type="radio" name="mode2" value="normal" checked><span>普通</span></label>
+      <label><input type="radio" name="mode2" value="hard"><span>困難</span></label>
+      <label><input type="radio" name="mode2" value="hell"><span>地獄</span></label>
+    </div>
+    <div class="modeHint">下一局生效</div>
     <button class="btn" id="againBtn" type="button">再走一次</button>
     <button class="btn alt" id="muteBtn" type="button">風聲：開</button>
   </div>
+</div>
+
+<div id="hellIntro" hidden aria-hidden="true">
+  <div id="hiComments"></div>
+  <div class="hi-title" id="hiTitle"><b>地獄模式</b><span>新竹根本沒有人行道</span></div>
+  <div class="hi-skip">點一下跳過</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -173,7 +215,7 @@ renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 stage.appendChild(renderer.domElement);
 
 const scene=new THREE.Scene();
-const SKY=0x9fb3bf;
+const SKY=0x9fb3bf, HELL_SKY=0xb08478;
 scene.background=new THREE.Color(SKY);
 scene.fog=new THREE.Fog(SKY,25,85);
 const camera=new THREE.PerspectiveCamera(60,1,0.1,200);
@@ -222,15 +264,19 @@ const mat={
   white:new THREE.MeshBasicMaterial({color:0xeeeeee}),
   pole:new THREE.MeshLambertMaterial({color:0x6c7378}),
   tree:new THREE.MeshLambertMaterial({color:0x3e6b45}),
-  trunk:new THREE.MeshLambertMaterial({color:0x5b4636})
+  trunk:new THREE.MeshLambertMaterial({color:0x5b4636}),
+  green:new THREE.MeshLambertMaterial({color:0x3f9a4a})
 };
 const bColors=[0xd9d2c3,0xbfc6c4,0xe3d9c6,0xa9b2b0,0xcbbfa8,0xd4cfc7,0xb8aea0];
 const segments=[];
 function makeSegment(){
   const g=new THREE.Group();
   const sw=new THREE.Mesh(new THREE.PlaneGeometry(SIDE*2,SEG),mat.brick);sw.rotation.x=-Math.PI/2;sw.position.y=0.15;sw.receiveShadow=true;g.add(sw);
+  g.userData.sw=sw;g.userData.curbs=[];g.userData.green=[];
   [-1,1].forEach(s=>{
-    const curb=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.18,SEG),mat.curb);curb.position.set(s*(SIDE+0.12),0.09,0);g.add(curb);
+    const curb=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.18,SEG),mat.curb);curb.position.set(s*(SIDE+0.12),0.09,0);g.add(curb);g.userData.curbs.push(curb);
+    // hell: the only 'sidewalk' is green paint at the road edge
+    const gp=new THREE.Mesh(new THREE.PlaneGeometry(0.55,SEG),mat.green);gp.rotation.x=-Math.PI/2;gp.position.set(s*(SIDE-0.35),0.012,0);gp.visible=false;g.add(gp);g.userData.green.push(gp);
     const road=new THREE.Mesh(new THREE.PlaneGeometry(LANE_OUT-LANE_IN+0.4,SEG),mat.road);road.rotation.x=-Math.PI/2;
     road.position.set(s*(LANE_IN+LANE_OUT)/2,0,0);road.receiveShadow=true;g.add(road);
     // red-yellow kerb paint no-parking line
@@ -301,7 +347,7 @@ function makeScooter(parked){
   return g;
 }
 // rare: someone riding a giant 貢丸 instead of a scooter
-const GW_R=0.55, GONGWAN_CHANCE=0.08; // share of traffic that's a 貢丸 rider
+const GW_R=0.55, GONGWAN_CHANCE=0.08, HELL_GONGWAN_CHANCE=0.35; // share of traffic that's a 貢丸 rider (新竹人都騎貢丸)
 const gwTex=canvasTex(128,64,(g,w,h)=>{
   g.fillStyle='#a47446';g.fillRect(0,0,w,h);
   for(let i=0;i<260;i++){g.fillStyle=['#8a5c33','#b8865a','#7a4f2b','#c49a6c'][i%4];g.beginPath();g.arc(Math.random()*w,Math.random()*h,1+Math.random()*2.5,0,Math.PI*2);g.fill();}
@@ -406,7 +452,8 @@ const SHOUTS={
   nycu:{color:'#8fb4ff',lines:['梅竹賽交大贏！','光復路飛過來！']},
   nthu:{color:'#d9a8ff',lines:['梅竹賽清大贏！','清交一家！']},
   bigcity:{color:'#ff8a7a',lines:['周年慶！','停車場客滿！']},
-  xiaochao:{color:'#ffd27a',lines:['趁熱吃！','加碗白飯！']}
+  xiaochao:{color:'#ffd27a',lines:['趁熱吃！','加碗白飯！']},
+  flyer:{color:'#ffffff',lines:['我在飛！','九降風載我一程！','新竹機車會飛！','我還在催油門！']}
 };
 const _v=new THREE.Vector3();
 const SHOUT_CHANCE=0.7, SHOUT_GAP=1; // keep the jokes rare so they stay funny
@@ -466,16 +513,20 @@ let gustT=0,gustAmt=0,gustVis=0,gustCD=4;
 let lanes=[], scooters=[], spawnL=0, spawnR=0, hitDir=0, deathMsg='';
 const STEP=0.2, NUDGE_TIME=0.09, WALK=2.6;
 // hard mode: umbrella + vertical wind
-let hard=false, py=0, windV=0, windVTarget=0, phaseVT=0, flipT=0, sky=[], spawnSky=0, deathY=0;
+let gameMode='normal', hard=false, hell=false, py=0, windV=0, windVTarget=0, phaseVT=0, flipT=0, sky=[], spawnSky=0, deathY=0;
 const PY_MAX=9, GROUND_HIT=0.8;
-const bestKey=()=>hard?'windcity_best_hard':'windcity_best';
+const MODE_NAMES={normal:'普通',hard:'困難',hell:'地獄'};
+const bestKey=()=>gameMode==='normal'?'windcity_best':'windcity_best_'+gameMode;
+// hell: scooters ride on the 'sidewalk' and get blown onto it
+const HELL_BLOW=0.25, HELL_LIFT_CHANCE=0.3; // share of oncoming scooters the wind lifts into the sky
+let spawnM=0, skipIntro=null;
 function loadBest(){try{return +localStorage.getItem(bestKey())||0;}catch(e){return 0;}}
 
 function reset(){
   px=0;pz=0;vxNudge=0;wind=0;gustT=0;gustAmt=0;gustVis=0;gustCD=4;$('gust').hidden=true;windTarget=0.3;phaseT=2.5;t=0;dist=0;deadT=0;shake=0;hitDir=0;
   py=0;windV=0;windVTarget=0;phaseVT=1.5;flipT=0;$('flip').hidden=true;spawnSky=3;
   sky.forEach(o=>scene.remove(o.m));sky=[];$('shouts').textContent='';shoutCD=0;
-  scooters.forEach(s=>scene.remove(s.m));scooters=[];spawnL=0.6;spawnR=1.2;
+  scooters.forEach(s=>scene.remove(s.m));scooters=[];spawnL=0.6;spawnR=1.2;spawnM=2.5;
   segments.forEach((g,i)=>{g.position.z=-i*SEG+SEG/2-2;dressSegment(g);});
   streakData.length=0;for(let i=0;i<NSTREAK;i++){const d={};resetStreak(d,0,true);streakData.push(d);}
   leaves.forEach(l=>{l.x=Math.random()*20-10;l.y=Math.random()*3;l.z=-Math.random()*30;l.r=Math.random()*6;});
@@ -513,20 +564,26 @@ addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();
   if(k==='arrowleft'||k==='a')nudge(-1);
   if(k==='arrowright'||k==='d')nudge(1);
+  if(state==='intro'&&skipIntro&&(e.key===' '||e.key==='Enter'||e.key==='Escape')){e.preventDefault();skipIntro();return;}
   if((e.key===' '||e.key==='Enter')&&(state==='menu'||(state==='dead'&&deadT>1.2))){
     if(e.target.closest&&e.target.closest('input,button'))return;
     e.preventDefault();start();
   }
 });
-function setHard(on){
-  hard=on;
-  document.querySelectorAll('.hardToggle').forEach(c=>c.checked=on);
-  document.querySelectorAll('.hardOnly').forEach(el=>el.hidden=!on);
-  document.querySelectorAll('.normalOnly').forEach(el=>el.hidden=on);
-  ['altRow','vms'].forEach(id=>$(id).hidden=!on);
-  umb.visible=on;
+// hell includes everything from hard mode
+function setMode(m){
+  gameMode=m;hard=m!=='normal';hell=m==='hell';
+  document.querySelectorAll('.modes input').forEach(r=>r.checked=r.value===m);
+  document.querySelectorAll('[data-modes]').forEach(el=>el.hidden=el.dataset.modes!==m);
+  ['altRow','vms'].forEach(id=>$(id).hidden=!hard);
+  umb.visible=hard;
+  segments.forEach(g=>{const u=g.userData;
+    u.sw.material=hell?mat.road:mat.brick;u.sw.position.y=hell?0.005:0.15;
+    u.curbs.forEach(c=>c.visible=!hell);u.green.forEach(c=>c.visible=hell);});
+  const skyCol=hell?HELL_SKY:SKY;scene.background.set(skyCol);scene.fog.color.set(skyCol);
+  if(hell)preloadComplaints();
 }
-document.querySelectorAll('.hardToggle').forEach(c=>c.addEventListener('change',()=>setHard(c.checked)));
+document.querySelectorAll('.modes input').forEach(r=>r.addEventListener('change',()=>{if(r.checked)setMode(r.value);}));
 document.addEventListener('gesturestart',e=>e.preventDefault());
 
 // ---------- audio: filtered noise follows wind ----------
@@ -549,23 +606,74 @@ function beepSound(){
   g.gain.setValueAtTime(0.06,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.25);
   o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+0.26);
 }
+function popSound(f){
+  if(!ac||muted)return;
+  const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';
+  o.frequency.setValueAtTime(f,ac.currentTime);o.frequency.exponentialRampToValueAtTime(f*1.8,ac.currentTime+0.06);
+  g.gain.setValueAtTime(0.08,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.09);
+  o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+0.1);
+}
+function boomSound(){
+  if(!ac||muted)return;
+  const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';
+  o.frequency.setValueAtTime(160,ac.currentTime);o.frequency.exponentialRampToValueAtTime(40,ac.currentTime+0.6);
+  g.gain.setValueAtTime(0.25,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.7);
+  o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+0.72);
+}
 $('muteBtn').addEventListener('click',()=>{muted=!muted;$('muteBtn').textContent='風聲：'+(muted?'關':'開');});
 
 // GoatCounter events (count.js skips localhost, so local testing isn't recorded)
 function track(path,title){try{window.goatcounter&&window.goatcounter.count&&window.goatcounter.count({path,title,event:true});}catch(e){}}
-const mode=()=>hard?'hard':'normal';
+const mode=()=>gameMode;
+
+// ---------- hell intro: real comments bombing the screen ----------
+const COMPLAINTS=['image.png','image copy.png','image copy 2.png','image copy 3.png','image copy 4.png','image copy 5.png','image copy 6.png']
+  .map(f=>'complain/'+encodeURIComponent(f));
+let complaintImgs=null, hellIntroSeen=false;
+function preloadComplaints(){if(!complaintImgs)complaintImgs=COMPLAINTS.map(src=>{const i=new Image();i.src=src;return i;});}
+function playHellIntro(done){
+  preloadComplaints();
+  const box=$('hellIntro'),list=$('hiComments'),title=$('hiTitle'),timers=[];
+  list.textContent='';title.classList.remove('on');box.classList.remove('out','shake');box.hidden=false;
+  let finished=false;
+  const finish=()=>{
+    if(finished)return;finished=true;skipIntro=null;box.onpointerdown=null;timers.forEach(clearTimeout);
+    box.classList.add('out');setTimeout(()=>{box.hidden=true;box.classList.remove('out','shake');list.textContent='';},450);
+    done();
+  };
+  skipIntro=finish;
+  // every comment once, then they pile on faster and faster
+  const order=[...COMPLAINTS.keys()].sort(()=>Math.random()-.5);
+  let at=150;
+  for(let i=0;i<26;i++){
+    const idx=i<order.length?order[i]:Math.random()*COMPLAINTS.length|0;
+    timers.push(setTimeout(()=>{
+      const img=document.createElement('img');img.className='hi-c';img.alt='';img.src=COMPLAINTS[idx];
+      const w=Math.min(innerWidth*(0.62+Math.random()*0.26),400);
+      img.style.cssText=`--w:${w}px;--r:${(Math.random()*24-12).toFixed(1)}deg;left:${10+Math.random()*80}%;top:${12+Math.random()*76}%`;
+      list.appendChild(img);popSound(500+Math.random()*700);
+    },at));
+    at+=i<order.length?300-i*25:Math.max(45,140-(i-order.length)*8);
+  }
+  timers.push(setTimeout(()=>{box.classList.add('shake');title.classList.add('on');boomSound();},at+250));
+  timers.push(setTimeout(finish,at+1850));
+  timers.push(setTimeout(()=>{box.onpointerdown=finish;},500)); // ignore the tap that started the run
+}
 
 function start(){
-  track('start-'+mode(),'開始（'+(hard?'困難':'普通')+'）');
+  track('start-'+mode(),'開始（'+MODE_NAMES[gameMode]+'）');
   initAudio();if(ac&&ac.state==='suspended')ac.resume();
-  reset();state='play';$('startScreen').hidden=true;$('overScreen').hidden=true;
+  reset();$('startScreen').hidden=true;$('overScreen').hidden=true;
+  if(hell&&!hellIntroSeen){hellIntroSeen=true;state='intro';playHellIntro(()=>{state='play';});}
+  else state='play';
 }
 $('startBtn').addEventListener('click',start);
 $('againBtn').addEventListener('click',start);
 
 // ---------- scooter spawning ----------
+const gongwanChance=()=>hell?HELL_GONGWAN_CHANCE:GONGWAN_CHANCE;
 function spawn(side){
-  const gw=Math.random()<GONGWAN_CHANCE;
+  const gw=Math.random()<gongwanChance();
   const m=gw?makeGongwan():makeScooter(false);scene.add(m);
   // left lane: oncoming (+z). right lane: same direction, overtaking from behind (-z)
   const oncoming=side<0;
@@ -574,7 +682,20 @@ function spawn(side){
   m.rotation.y=oncoming?Math.PI:0;
   const x=side*(LANE_C+(Math.random()-0.5)*0.9);
   m.position.set(x,0,z);
-  scooters.push({m,side,v:oncoming?speed:-speed,x,warned:false,gw,hx:gw?0.72:0.62,hz:gw?0.85:1.05});
+  scooters.push({m,side,v:oncoming?speed:-speed,x,warned:false,gw,hx:gw?0.72:0.62,hz:gw?0.85:1.05,blow:0.4+Math.random(),
+    lift:hell&&oncoming&&Math.random()<HELL_LIFT_CHANCE,yOff:(Math.random()*2-1)*0.4,spin:(Math.random()<.5?-1:1)*(2+Math.random()*3)});
+}
+// hell: scooters riding right down the middle, toward you or from behind
+function spawnMid(){
+  const gw=Math.random()<gongwanChance();
+  const m=gw?makeGongwan():makeScooter(false);scene.add(m);
+  const oncoming=Math.random()<0.6;
+  const speed=oncoming?6+Math.random()*3:WALK+5+Math.random()*3;
+  m.rotation.y=oncoming?Math.PI:0;
+  const x=(Math.random()*2-1)*(SIDE-0.4);
+  m.position.set(x,0,oncoming?pz-60:pz+20);
+  scooters.push({m,side:0,mid:true,v:oncoming?speed:-speed,x,warned:false,gw,hx:gw?0.72:0.62,hz:gw?0.85:1.05,blow:0.4+Math.random(),
+    lift:hell&&oncoming&&Math.random()<HELL_LIFT_CHANCE,yOff:(Math.random()*2-1)*0.4,spin:(Math.random()<.5?-1:1)*(2+Math.random()*3)});
 }
 
 function spawnSkyThing(){
@@ -599,7 +720,13 @@ const DEATHS={
   nycu:['被交大招牌','砸中了','交大的招牌被吹下來，飛過光復路直直朝你來。'],
   nthu:['被清大招牌','砸中了','清大的招牌也被吹飛了，梅竹賽在空中延長賽。'],
   bigcity:['被巨城碎片','打中了','連巨城都被吹掉一塊，你還想在路上走？'],
-  xiaochao:['被客家小炒','糊臉了','一整盤客家小炒被吹過來，魷魚還黏在你臉上。']
+  xiaochao:['被客家小炒','糊臉了','一整盤客家小炒被吹過來，魷魚還黏在你臉上。'],
+  midF:['被騎在人行道上的機車','撞了','新竹的機車本來就騎在人行道上，你第一天知道？'],
+  midB:['被後面騎上人行道的機車','撞了','新竹沒有人行道這種東西，後面的機車也這麼覺得。'],
+  gwMid:['被騎在人行道上的貢丸','撞了','新竹人都騎貢丸……人行道在哪，我也沒看到。'],
+  blown:['被吹上人行道的機車','撞了','機車騎一騎，也會被吹到飄逸上人行道。'],
+  fly:['被飛在天上的機車','撞了','九降風把機車吹上天，騎士還在催油門。'],
+  gwFly:['被飛在天上的貢丸','撞了','連貢丸都被吹上天了，騎士看起來還很開心。']
 };
 function die(kind,dir){
   state='dead';deadT=0;hitDir=dir||Math.sign(px)||1;shake=0.6;deathY=py;
@@ -608,7 +735,7 @@ function die(kind,dir){
   let best=loadBest();
   if(dd>best){best=dd;try{localStorage.setItem(bestKey(),best);}catch(e){}}
   $('finalDist').textContent=dd+' m';$('bestDist').textContent=best+' m';
-  $('bestLbl').textContent=hard?'最遠（困難）':'最遠';
+  $('bestLbl').textContent=gameMode==='normal'?'最遠':'最遠（'+MODE_NAMES[gameMode]+'）';
   const [title,em,msg]=DEATHS[kind];
   const bucket=dd<100?'0-99':dd<200?'100-199':dd<300?'200-299':dd<500?'300-499':'500+';
   track('death-'+mode()+'-'+kind,title+em);
@@ -658,6 +785,7 @@ function frame(now){
     spawnL-=dt;spawnR-=dt;
     if(spawnL<=0){spawn(-1);spawnL=0.7+Math.random()*(1.6-lf*0.7);}
     if(spawnR<=0){spawn(1);spawnR=0.8+Math.random()*(1.7-lf*0.7);}
+    if(hell){spawnM-=dt;if(spawnM<=0){spawnMid();spawnM=1.4+Math.random()*(1.8-lf*0.6);}}
   }else if(state==='dead'){
     deadT+=dt;
     player.position.x+=hitDir*dt*3*Math.max(0,1-deadT);
@@ -671,22 +799,40 @@ function frame(now){
   }
 
   // scooters
-  let warnL=false,warnR=false;
+  let warnL=false,warnR=false,warnB=false;
   for(let i=scooters.length-1;i>=0;i--){
     const s=scooters[i];s.m.position.z+=s.v*dt;
     s.m.rotation.z=Math.sin(t*2+i)*0.03;
     if(s.gw)s.m.userData.ball.rotation.x-=Math.abs(s.v)*dt/GW_R;
+    // hell: 九降風 pushes scooters around too
+    if(hell)s.m.position.x=Math.max(-3.7,Math.min(3.7,s.m.position.x+(wind+gustVis)*HELL_BLOW*s.blow*dt));
     const dz=s.m.position.z-pz;
-    if(state==='play'&&py<GROUND_HIT){
+    // hell: some oncoming scooters get lifted into the sky, rider and all
+    if(s.lift&&!s.fly&&dz>-55&&dz<-20){s.fly=true;s.kind='flyer';}
+    if(s.fly){
+      s.m.position.y+=(Math.max(2.4,py+0.3+s.yOff)-s.m.position.y)*Math.min(1,dt*1.6);
+      s.m.rotation.x+=s.spin*dt;s.m.rotation.z=Math.sin(t*5+i)*0.35;
+      const dy=py+1.1-(s.m.position.y+0.8);
+      if(state==='play'){
+        if(!s.shouted&&dz>-13&&dz<-4&&Math.abs(px-s.m.position.x)<1.6&&Math.abs(dy)<1.6){s.shouted=true;if(shoutCD<=0&&Math.random()<SHOUT_CHANCE){shout(s);shoutCD=SHOUT_GAP;}}
+        if(Math.abs(dz)<0.9&&Math.hypot(px-s.m.position.x,dy)<0.8)die(s.gw?'gwFly':'fly',Math.sign(px-s.m.position.x)||1);
+      }
+      if(s.el){_v.copy(s.m.position).project(camera);s.el.style.transform=`translate(${(_v.x+1)/2*innerWidth}px,${(1-_v.y)/2*innerHeight-18}px)`;}
+    }else if(state==='play'&&py<GROUND_HIT){
       const near=s.v>0?(dz<0&&dz>-26):(dz>0&&dz<16);
       const risky=Math.abs(px)>SIDE-0.35;
       if(near&&risky&&Math.sign(px)===s.side){if(s.side<0)warnL=true;else warnR=true;
         if(!s.warned){s.warned=true;beepSound();}}
-      if(Math.abs(px-s.m.position.x)<s.hx&&Math.abs(dz)<s.hz){die((s.gw?'gw':'scooter')+(s.side<0?'L':'R'));}
+      if(hell&&s.v<0&&dz>0&&dz<14&&Math.abs(s.m.position.x-px)<1.3){warnB=true;if(!s.warned){s.warned=true;beepSound();}}
+      if(Math.abs(px-s.m.position.x)<s.hx&&Math.abs(dz)<s.hz){
+        die(s.mid?(s.gw?'gwMid':s.v>0?'midF':'midB')
+          :Math.abs(s.m.position.x)<SIDE+0.1?'blown'
+          :(s.gw?'gw':'scooter')+(s.side<0?'L':'R'));
+      }
     }
-    if((s.v>0&&dz>12)||(s.v<0&&dz<-90)){scene.remove(s.m);scooters.splice(i,1);}
+    if((s.v>0&&dz>12)||(s.v<0&&dz<-90)){scene.remove(s.m);if(s.el)s.el.remove();scooters.splice(i,1);}
   }
-  $('edgeL').style.opacity=warnL?1:0;$('edgeR').style.opacity=warnR?1:0;
+  $('edgeL').style.opacity=warnL?1:0;$('edgeR').style.opacity=warnR?1:0;$('edgeB').style.opacity=warnB?1:0;
 
   // sky obstacles
   shoutCD-=dt;
