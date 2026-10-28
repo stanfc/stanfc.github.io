@@ -1,0 +1,5 @@
+# Separate local checkout; fetched from its own repository during builds.
+guess-party/
+# Cloudflare Pages build output.
+dist/
+.DS_Store
